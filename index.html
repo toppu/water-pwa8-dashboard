@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบติดตามสถานะแหล่งน้ำ ประปาส่วนภูมิภาค เขต 8</title>
+  
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Layout Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fa-solid fa-droplet logo-icon"></i>
+        <h2>Water Ubon</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active"><a href="#dashboard-section"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
+          <li><a href="#map-section"><i class="fa-solid fa-map-location-dot"></i> <span>แผนที่</span></a></li>
+          <li><a href="#table-section"><i class="fa-solid fa-table"></i> <span>ตารางข้อมูล</span></a></li>
+          <li><a href="#chart-section"><i class="fa-solid fa-chart-pie"></i> <span>กราฟสถิติ</span></a></li>
+          <li><a href="#about-section"><i class="fa-solid fa-circle-info"></i> <span>เกี่ยวกับระบบ</span></a></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <p>จังหวัดอุบลราชธานี</p>
+        <small>ระบบสารสนเทศเพื่อการบริหาร</small>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header -->
+      <header class="top-header" id="dashboard-section">
+        <div class="header-title">
+          <h1>ระบบติดตามสถานะแหล่งน้ำ ประปาส่วนภูมิภาค เขต 8</h1>
+          <p>ระบบสารสนเทศการติดตามและเฝ้าระวังระดับน้ำแบบ Real-Time</p>
+        </div>
+        <div class="header-status">
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            <span>สถานะระบบ: ปกติ</span>
+          </div>
+          <div class="last-update">
+            <i class="fa-regular fa-clock"></i> อัปเดตล่าสุด: <span id="update-time">กำลังโหลด...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" placeholder="ค้นหาชื่อแหล่งน้ำ หรือ สาขาการให้บริการ... (กด Enter เพื่อค้นหา)">
+          <button id="search-btn"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Overview Cards -->
+      <section class="cards-grid">
+        <div class="card card-clickable" id="card-total">
+          <div class="card-icon bg-blue">
+            <i class="fa-solid fa-water"></i>
+          </div>
+          <div class="card-info">
+            <h3>จำนวนแหล่งน้ำทั้งหมด</h3>
+            <div class="card-value" id="total-count">0</div>
+            <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> คลิกเพื่อดูรายการทั้งหมด</p>
+          </div>
+        </div>
+
+        <div class="card card-clickable" id="card-critical">
+          <div class="card-icon bg-red">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="card-info">
+            <h3>แหล่งน้ำวิกฤต (&lt; 30%)</h3>
+            <div class="card-value text-red" id="critical-count">0</div>
+            <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> คลิกเพื่อดูจุดวิกฤต</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Map Section -->
+      <section class="content-section" id="map-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-map-location-dot"></i> แผนที่ตำแหน่งแหล่งน้ำ</h2>
+        </div>
+        <div class="map-card">
+          <div id="map"></div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="content-section" id="chart-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-chart-pie"></i> กราฟสถิติและการวิเคราะห์</h2>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>สัดส่วนสถานะแหล่งน้ำ</h3>
+            <div class="chart-container">
+              <canvas id="pieChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>เปรียบเทียบเปอร์เซ็นต์น้ำรายแหล่งน้ำ (%)</h3>
+            <div class="chart-container">
+              <canvas id="barChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table Section -->
+      <section class="content-section" id="table-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-table"></i> ตารางสรุปข้อมูลสถานะน้ำ</h2>
+          <div class="table-actions">
+            <button class="btn-sort" id="sort-name"><i class="fa-solid fa-sort-alpha-down"></i> เรียงตามชื่อ</button>
+            <button class="btn-sort" id="sort-percent"><i class="fa-solid fa-sort-numeric-down-alt"></i> เรียงตาม % น้ำ</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>ชื่อแหล่งน้ำ</th>
+                  <th>สาขา</th>
+                  <th>% ความจุ</th>
+                  <th>น้ำปัจจุบัน (ลบ.ม.,ม.)</th>
+                  <th>คาดการณ์ระยะเวลาที่สามารถสูบน้ำดิบได้ถึง</th>
+                  <th>กำลังผลิต (ลบ.ม./ชม.)</th>
+                  <th>ความต้องการใช้น้ำ (คน)</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr><td colspan="9" class="text-center">กำลังโหลดข้อมูล...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="content-section" id="about-section">
+        <div class="about-card">
+          <h2><i class="fa-solid fa-circle-info"></i> เกี่ยวกับระบบ</h2>
+          <p>ระบบติดตามสถานะแหล่งน้ำ ประปาส่วนภูมิภาค เขต 8 จัดทำขึ้นเพื่อใช้ในการติดตาม ตรวจสอบ และวิเคราะห์สถานการณ์น้ำในพื้นที่ ให้บริการข้อมูลเชิงพื้นที่แบบ Real-Time สำหรับหน่วยงานราชการและเจ้าหน้าที่ผู้เกี่ยวข้องในการบริหารจัดการทรัพยากรน้ำอย่างมีประสิทธิภาพ</p>
+          <div class="about-meta">
+            <span><i class="fa-solid fa-sync"></i> อัปเดตข้อมูลอัตโนมัติทุก 5 นาที</span>
+            <span><i class="fa-solid fa-database"></i> เชื่อมโยงข้อมูลผ่าน Google Sheets API</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal List (รวม/วิกฤต) -->
+  <div class="modal" id="list-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-list-title">รายการแหล่งน้ำ</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-list-group" id="modal-list-container">
+          <!-- Items injected by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Details (รายละเอียดเชิงลึก) -->
+  <div class="modal" id="detail-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-circle-info"></i> รายละเอียดสถานะแหล่งน้ำ</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="detail-modal-body">
+        <!-- Content injected by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-show-map"><i class="fa-solid fa-location-dot"></i> แสดงบนแผนที่</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>S -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-show-map"><i class="fa-solid fa-location-dot"></i> แสดงบนแผนที่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet & Chart.js Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Script -->
+  <script src="script.js"></script>
+</body>
+</html>
