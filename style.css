@@ -246,6 +246,7 @@ body {
 
 .bg-blue { background: rgba(2, 132, 199, 0.1); color: var(--accent-blue); }
 .bg-red { background: rgba(239, 68, 68, 0.1); color: var(--status-critical); }
+.bg-amber { background: rgba(245, 158, 11, 0.1); color: var(--status-warning); }
 
 .card-info h3 {
   font-size: 14px;
@@ -261,6 +262,7 @@ body {
 }
 
 .text-red { color: var(--status-critical); }
+.text-amber { color: var(--status-warning); }
 
 .card-subtext {
   font-size: 12px;
@@ -319,6 +321,10 @@ body {
 
 .leaflet-tooltip-top:before {
   border-top-color: rgba(15, 23, 42, 0.85);
+}
+
+.map-label-flagged {
+  background: rgba(180, 83, 9, 0.9);
 }
 
 /* Charts Grid */
@@ -399,6 +405,7 @@ body {
 .badge-normal { background: rgba(16, 185, 129, 0.15); color: #047857; }
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
 .badge-critical { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+.badge-flagged { background: rgba(148, 163, 184, 0.2); color: #475569; border: 1px dashed #f59e0b; }
 
 .table-actions {
   display: flex;
