@@ -423,6 +423,12 @@ body {
   border-color: var(--accent-blue);
 }
 
+.btn-sort.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
 /* About Card */
 .about-card {
   background: var(--card-bg);

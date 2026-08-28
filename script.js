@@ -8,6 +8,7 @@ let map, markersGroup;
 let pieChartInstance = null;
 let barChartInstance = null;
 let selectedWaterItem = null;
+let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคงเหลือ (วัน), 'percent' = ความจุน้ำ (%)
 
 // ==========================================
 // Helper Function: แปลงวันที่เป็นภาษาไทย (เช่น 21 กันยายน 2574)
@@ -51,6 +52,26 @@ function getStatusTheme(percent) {
   }
 }
 
+// Helper คำนวณสีธีมตามจำนวนวันน้ำดิบคงเหลือ (4 ระดับ)
+function getStatusThemeByDays(days) {
+  if (days === null || days === undefined || isNaN(days)) {
+    return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚪ ไม่ระบุ', badgeClass: 'badge-normal' };
+  } else if (days > 360) {
+    return { color: '#0284c7', bgHex: '#0284c7', label: '🔵 มากกว่า 360 วัน', badgeClass: 'badge-normal' };
+  } else if (days >= 211) {
+    return { color: '#10b981', bgHex: '#10b981', label: '🟢 211-360 วัน', badgeClass: 'badge-normal' };
+  } else if (days >= 121) {
+    return { color: '#f59e0b', bgHex: '#f59e0b', label: '🟡 121-210 วัน', badgeClass: 'badge-warning' };
+  } else {
+    return { color: '#ef4444', bgHex: '#ef4444', label: '🔴 น้อยกว่า 120 วัน', badgeClass: 'badge-critical' };
+  }
+}
+
+// เลือกธีมสีสำหรับ Marker บนแผนที่ ตามโหมดที่ผู้ใช้เลือก (mapColorMode)
+function getMapMarkerTheme(item) {
+  return mapColorMode === 'raw' ? getStatusThemeByDays(item.daysRemaining) : getStatusTheme(item.percent);
+}
+
 // ==========================================
 // Initialization เมื่อโหลด DOM
 // ==========================================
@@ -92,6 +113,12 @@ async function fetchData() {
       const rawForecast = item.forecast || item.Forecast || 'ไม่ระบุ';
       const forecastVal = formatThaiDate(rawForecast);
 
+      // คำนวณจำนวนวันที่น้ำดิบคงเหลือ จากวันที่คาดการณ์
+      const forecastDateObj = new Date(rawForecast);
+      const daysRemaining = isNaN(forecastDateObj.getTime())
+        ? null
+        : Math.ceil((forecastDateObj - new Date()) / (1000 * 60 * 60 * 24));
+
       return {
         name: item.name || 'ไม่ระบุชื่อ',
         branch: item.branch || 'ไม่ระบุสาขา',
@@ -103,7 +130,8 @@ async function fetchData() {
         percent: percent,
         production: Number(item.production) || 0,
         demand: Number(item.demand) || 0,
-        forecast: forecastVal
+        forecast: forecastVal,
+        daysRemaining: daysRemaining
       };
     }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 
@@ -177,7 +205,7 @@ function renderMapMarkers() {
   markersGroup.clearLayers();
 
   waterData.forEach(item => {
-    const status = getStatusTheme(item.percent);
+    const status = getMapMarkerTheme(item);
 
     const marker = L.circleMarker([item.lat, item.lng], {
       radius: 9,
@@ -204,6 +232,7 @@ function renderMapMarkers() {
           <tr><td>ความจุต่ำสุด,ระดับต่ำสุด</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
           <tr><td>ความจุน้ำปัจจุบัน,ระดับน้ำปัจจุบัน</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
           <tr><td>เปอร์เซ็นต์แหล่งน้ำ</td><td><strong>${item.percent}%</strong></td></tr>
+          <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.daysRemaining !== null ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong></td></tr>
           <tr><td>คาดว่าใช้ได้ถึง</td><td><strong>${item.forecast}</strong></td></tr>
           <tr><td>กำลังการผลิต</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
           <tr><td>ความต้องการใช้น้ำ</td><td>${item.demand.toLocaleString()} คน</td></tr>
@@ -373,6 +402,16 @@ function setupEventListeners() {
   document.getElementById('sort-percent').addEventListener('click', () => {
     const sorted = [...waterData].sort((a, b) => a.percent - b.percent);
     renderTable(sorted);
+  });
+
+  document.querySelectorAll('#map-color-toggle .btn-sort').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mode === mapColorMode) return;
+      mapColorMode = btn.dataset.mode;
+      document.querySelectorAll('#map-color-toggle .btn-sort').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMapMarkers();
+    });
   });
 
   document.getElementById('btn-show-map').addEventListener('click', () => {

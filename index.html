@@ -103,6 +103,10 @@
       <section class="content-section" id="map-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-map-location-dot"></i> แผนที่ตำแหน่งแหล่งน้ำ</h2>
+          <div class="table-actions" id="map-color-toggle">
+            <button class="btn-sort active" data-mode="raw" id="mode-raw"><i class="fa-solid fa-tint"></i> ปริมาณน้ำดิบคงเหลือ (วัน)</button>
+            <button class="btn-sort" data-mode="percent" id="mode-percent"><i class="fa-solid fa-percent"></i> ความจุน้ำ (%)</button>
+          </div>
         </div>
         <div class="map-card">
           <div id="map"></div>
