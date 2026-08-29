@@ -665,7 +665,8 @@ function renderTablePage() {
   const pageData = currentTableData.slice(startIdx, endIdx);
 
   pageData.forEach((item, index) => {
-    const status = getStatusTheme(item.percent);
+    // สถานะคอลัมน์สุดท้ายอิงตามปริมาณน้ำดิบคงเหลือ (วัน) เกณฑ์เดียวกับที่ใช้บนแผนที่
+    const status = item.forecastValid ? getStatusThemeByDays(item.daysRemaining) : getFlaggedTheme();
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
