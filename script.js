@@ -217,6 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // 1. การดึงข้อมูลจาก API
 // ==========================================
 async function fetchData() {
+  document.getElementById('fetch-spinner').classList.add('active');
+
   try {
     const response = await fetch(API_URL);
     const data = await response.json();
@@ -278,6 +280,9 @@ async function fetchData() {
     updateLastUpdatedTime();
   } catch (error) {
     console.error('Error fetching water data:', error);
+  } finally {
+    document.getElementById('fetch-spinner').classList.remove('active');
+    document.getElementById('loading-overlay').classList.add('hidden');
   }
 }
 

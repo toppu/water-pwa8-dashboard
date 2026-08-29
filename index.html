@@ -17,12 +17,18 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829l">
+  <link rel="stylesheet" href="style.css?v=20260829m">
 
   <!-- กำหนดขนาดกระดาษสำหรับพิมพ์ ปรับค่าด้วย JS ก่อนเรียก window.print() -->
   <style id="dynamic-print-page-style">@page { size: A4 landscape; margin: 10mm; }</style>
 </head>
 <body>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>กำลังโหลดข้อมูล...</p>
+  </div>
 
   <!-- Layout Container -->
   <div class="app-container">
@@ -64,6 +70,7 @@
           </div>
           <div class="last-update">
             <i class="fa-regular fa-clock"></i> อัปเดตล่าสุด: <span id="update-time">กำลังโหลด...</span>
+            <i class="fa-solid fa-arrows-rotate fetch-spinner" id="fetch-spinner"></i>
           </div>
           <div class="print-toolbar">
             <button class="btn-sort" id="print-dashboard-btn" title="พิมพ์แดชบอร์ดทั้งหมด (A4 แนวนอน)">
@@ -424,6 +431,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829l"></script>
+  <script src="script.js?v=20260829m"></script>
 </body>
 </html>
