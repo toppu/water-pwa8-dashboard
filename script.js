@@ -13,6 +13,23 @@ let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคง�
 // ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
 const FORECAST_MAX_REASONABLE_DAYS = 3650;
 
+// คำอธิบายเกณฑ์สีของแต่ละโหมด สำหรับแสดงเป็น Legend ใต้แผนที่
+const MAP_LEGEND_ITEMS = {
+  raw: [
+    { color: '#0284c7', label: 'มากกว่า 360 วัน' },
+    { color: '#10b981', label: '211 - 360 วัน' },
+    { color: '#f59e0b', label: '121 - 210 วัน' },
+    { color: '#ef4444', label: 'น้อยกว่า 120 วัน' },
+    { color: '#94a3b8', label: 'ข้อมูลวันที่คาดการณ์ผิดปกติ', flagged: true }
+  ],
+  percent: [
+    { color: '#0284c7', label: 'อุดมสมบูรณ์ (มากกว่า 80%)' },
+    { color: '#10b981', label: 'ปกติ (51% - 80%)' },
+    { color: '#f59e0b', label: 'เฝ้าระวัง (30% - 50%)' },
+    { color: '#ef4444', label: 'วิกฤต (น้อยกว่า 30%)' }
+  ]
+};
+
 // ==========================================
 // Helper Function: แปลงวันที่เป็นภาษาไทย (เช่น 21 กันยายน 2574)
 // ==========================================
@@ -229,8 +246,22 @@ function initMap() {
   markersGroup = L.layerGroup().addTo(map);
 }
 
+// แสดงคำอธิบายเกณฑ์สีของโหมดที่กำลังเลือกอยู่ใต้แผนที่
+function renderMapLegend() {
+  const container = document.getElementById('map-legend');
+  const items = MAP_LEGEND_ITEMS[mapColorMode];
+
+  container.innerHTML = items.map(item => `
+    <div class="legend-item">
+      <span class="legend-swatch${item.flagged ? ' legend-swatch-flagged' : ''}" style="background:${item.color};"></span>
+      <span>${item.label}</span>
+    </div>
+  `).join('');
+}
+
 function renderMapMarkers() {
   markersGroup.clearLayers();
+  renderMapLegend();
 
   waterData.forEach(item => {
     const status = getMapMarkerTheme(item);
