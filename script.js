@@ -434,6 +434,9 @@ function renderMapMarkers() {
 
 function focusOnMap(item) {
   if (item && item._marker) {
+    if (document.getElementById('map-section').classList.contains('map-hidden')) {
+      setMapSize('large');
+    }
     document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
     map.setView([item.lat, item.lng], 13);
     setTimeout(() => {
@@ -866,6 +869,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('map-fullscreen-btn').addEventListener('click', toggleMapFullscreen);
+  document.getElementById('map-size-select').addEventListener('change', (e) => setMapSize(e.target.value));
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -881,6 +885,12 @@ function setupEventListeners() {
 function toggleMapFullscreen() {
   const section = document.getElementById('map-section');
   const btn = document.getElementById('map-fullscreen-btn');
+
+  // ถ้าแผนที่ถูกซ่อนอยู่ ให้แสดงก่อนเข้าโหมดเต็มจอ
+  if (section.classList.contains('map-hidden')) {
+    setMapSize('large');
+  }
+
   const isFullscreen = section.classList.toggle('map-fullscreen');
 
   document.body.style.overflow = isFullscreen ? 'hidden' : '';
@@ -892,6 +902,24 @@ function toggleMapFullscreen() {
   setTimeout(() => {
     if (map) map.invalidateSize();
   }, 300);
+}
+
+// ปรับขนาด/ซ่อนแผนที่ ตามตัวเลือกที่ผู้ใช้เลือก (hidden/small/medium/large)
+function setMapSize(size) {
+  const section = document.getElementById('map-section');
+  const mapCard = document.getElementById('map-card');
+  const select = document.getElementById('map-size-select');
+
+  select.value = size;
+  section.classList.toggle('map-hidden', size === 'hidden');
+
+  if (size !== 'hidden') {
+    mapCard.classList.remove('map-size-small', 'map-size-medium', 'map-size-large');
+    mapCard.classList.add(`map-size-${size}`);
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+    }, 300);
+  }
 }
 
 function openListModal(title, items) {

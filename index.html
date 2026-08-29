@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829g">
+  <link rel="stylesheet" href="style.css?v=20260829h">
 </head>
 <body>
 
@@ -119,12 +119,21 @@
               <button class="btn-sort active" data-mode="raw" id="mode-raw"><i class="fa-solid fa-tint"></i> ปริมาณน้ำดิบคงเหลือ (วัน)</button>
               <button class="btn-sort" data-mode="percent" id="mode-percent"><i class="fa-solid fa-percent"></i> ความจุน้ำ (%)</button>
             </div>
+            <div class="map-size-control">
+              <label for="map-size-select"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> ขนาดแผนที่</label>
+              <select id="map-size-select">
+                <option value="hidden">ซ่อนแผนที่</option>
+                <option value="small">เล็ก</option>
+                <option value="medium">กลาง</option>
+                <option value="large" selected>ใหญ่ (ค่าเริ่มต้น)</option>
+              </select>
+            </div>
             <button class="btn-sort" id="map-fullscreen-btn" title="ขยายแผนที่เต็มจอ">
               <i class="fa-solid fa-expand"></i> ขยายแผนที่
             </button>
           </div>
         </div>
-        <div class="map-card">
+        <div class="map-card map-size-large" id="map-card">
           <div id="map"></div>
         </div>
         <div class="map-legend" id="map-legend"></div>
@@ -391,6 +400,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829g"></script>
+  <script src="script.js?v=20260829h"></script>
 </body>
 </html>

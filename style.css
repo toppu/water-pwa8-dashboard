@@ -298,6 +298,25 @@ body {
   flex-wrap: wrap;
 }
 
+.map-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.map-size-control select {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
 /* Map Card */
 .map-card {
   background: var(--card-bg);
@@ -305,9 +324,29 @@ body {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
+}
+
+.map-card.map-size-small {
+  height: 260px;
+  min-height: 260px;
+  max-height: 260px;
+}
+
+.map-card.map-size-medium {
+  height: 480px;
+  min-height: 480px;
+  max-height: 480px;
+}
+
+.map-card.map-size-large {
   height: 75vh;
   min-height: 480px;
   max-height: 800px;
+}
+
+#map-section.map-hidden .map-card,
+#map-section.map-hidden .map-legend {
+  display: none;
 }
 
 /* Map Fullscreen Focus Mode */
