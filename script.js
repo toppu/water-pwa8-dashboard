@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   fetchData();
   setupEventListeners();
+  renderDroughtOverviewCharts();
 
   // ตั้งเวลา Refresh ข้อมูลอัตโนมัติทุก 5 นาที (300,000 ms)
   setInterval(() => {
@@ -420,6 +421,62 @@ function renderCharts() {
       }
     }
   });
+}
+
+// ==========================================
+// 5b. กราฟภาพรวมสถานการณ์ภัยแล้ง (ข้อมูลสรุปแบบ Static จากรายงาน กปภ.เขต 8)
+// ==========================================
+function renderDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{ data: data, backgroundColor: colors }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' }, boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = ((ctx.parsed / total) * 100).toFixed(1);
+              return `${ctx.label}: ${ctx.parsed.toLocaleString()} แห่ง (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDroughtOverviewCharts() {
+  // สาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง (รวม 20 สาขา + 43 หน่วยบริการ = 63)
+  renderDonutChart(
+    'droughtWatchChart',
+    ['ปกติ', 'เฝ้าระวังด้านปริมาณน้ำ', 'เฝ้าระวังด้านคุณภาพน้ำ', 'เฝ้าระวังด้านคุณภาพและปริมาณ'],
+    [58, 2, 2, 1],
+    ['#10b981', '#f59e0b', '#38bdf8', '#1e3a8a']
+  );
+
+  // แหล่งน้ำดิบหลัก ส่วนอ่างเก็บน้ำ (33 แห่ง)
+  renderDonutChart(
+    'reservoirChart',
+    ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
+    [8, 13, 9, 3],
+    ['#ef4444', '#f59e0b', '#10b981', '#0284c7']
+  );
+
+  // แหล่งน้ำดิบหลัก ส่วนลำน้ำ/ลำห้วย (42 แห่ง)
+  renderDonutChart(
+    'riverChart',
+    ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
+    [12, 13, 13, 4],
+    ['#ef4444', '#f59e0b', '#10b981', '#0284c7']
+  );
 }
 
 // ==========================================
