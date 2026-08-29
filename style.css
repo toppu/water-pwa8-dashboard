@@ -205,6 +205,20 @@ body {
   background-color: #026496;
 }
 
+.search-clear-btn {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  padding: 6px !important;
+  margin-right: 6px;
+  border-radius: 50% !important;
+  font-size: 14px;
+}
+
+.search-clear-btn:hover {
+  background: rgba(148, 163, 184, 0.2) !important;
+  color: var(--text-dark) !important;
+}
+
 /* Cards Grid */
 .cards-grid {
   display: grid;

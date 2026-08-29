@@ -282,9 +282,8 @@ function updateLastUpdatedTime() {
 // ==========================================
 function updateDashboard() {
   updateCards();
-  renderMapMarkers();
   Object.keys(TABLE_COLUMN_FILTERS).forEach(populateColumnFilterPanel);
-  applyTableFilters();
+  applyTableFilters(); // วาดตาราง + แผนที่ ตามตัวกรองปัจจุบัน
   renderCharts();
 }
 
@@ -320,6 +319,7 @@ function applyTableFilters() {
   }
 
   renderTable(filtered);
+  renderMapMarkers();
   return filtered;
 }
 
@@ -379,11 +379,12 @@ function renderMapLegend() {
   `).join('');
 }
 
+// วาดหมุดบนแผนที่ตามข้อมูลที่ผ่านตัวกรองตาราง (currentTableData) ไม่ใช่ waterData ทั้งหมด
 function renderMapMarkers() {
   markersGroup.clearLayers();
   renderMapLegend();
 
-  waterData.forEach(item => {
+  currentTableData.forEach(item => {
     const status = getMapMarkerTheme(item);
 
     const marker = L.circleMarker([item.lat, item.lng], {
@@ -433,16 +434,22 @@ function renderMapMarkers() {
 }
 
 function focusOnMap(item) {
-  if (item && item._marker) {
-    if (document.getElementById('map-section').classList.contains('map-hidden')) {
-      setMapSize('medium');
-    }
-    document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
-    map.setView([item.lat, item.lng], 13);
-    setTimeout(() => {
-      item._marker.openPopup();
-    }, 400);
+  if (!item) return;
+
+  // แผนที่แสดงเฉพาะข้อมูลที่ผ่านตัวกรองตาราง จุดนี้อาจไม่มีหมุดอยู่บนแผนที่ในขณะนี้
+  if (!item._marker || !map.hasLayer(item._marker)) {
+    alert('รายการนี้ไม่แสดงบนแผนที่ในขณะนี้ เนื่องจากถูกซ่อนโดยตัวกรองตารางที่ใช้อยู่ กรุณาล้างตัวกรองก่อน');
+    return;
   }
+
+  if (document.getElementById('map-section').classList.contains('map-hidden')) {
+    setMapSize('medium');
+  }
+  document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
+  map.setView([item.lat, item.lng], 13);
+  setTimeout(() => {
+    item._marker.openPopup();
+  }, 400);
 }
 
 // ==========================================
@@ -794,8 +801,24 @@ function setupEventListeners() {
   };
 
   document.getElementById('search-btn').addEventListener('click', handleSearch);
-  document.getElementById('search-input').addEventListener('keypress', (e) => {
+
+  const searchInput = document.getElementById('search-input');
+  const searchClearBtn = document.getElementById('search-clear-btn');
+
+  searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSearch();
+  });
+
+  searchInput.addEventListener('input', () => {
+    searchClearBtn.style.display = searchInput.value ? '' : 'none';
+  });
+
+  searchClearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+    tableFilterState.search = '';
+    applyTableFilters();
+    searchInput.focus();
   });
 
   document.getElementById('sort-name').addEventListener('click', () => {
@@ -817,6 +840,7 @@ function setupEventListeners() {
       columnFilters: buildDefaultColumnFilters()
     };
     document.getElementById('search-input').value = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
     Object.keys(TABLE_COLUMN_FILTERS).forEach((column) => {
       populateColumnFilterPanel(column);
       updateColumnFilterButtonState(column);
