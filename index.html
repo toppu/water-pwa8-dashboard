@@ -140,42 +140,6 @@
       </section>
 
       <!-- Charts Section -->
-      <section class="content-section" id="chart-section">
-        <div class="section-header">
-          <h2><i class="fa-solid fa-chart-pie"></i> กราฟสถิติและภาพรวมสถานการณ์แหล่งน้ำ</h2>
-        </div>
-        <div class="charts-grid charts-grid-4">
-          <div class="chart-card">
-            <h3>สัดส่วนสถานะแหล่งน้ำ</h3>
-            <p class="chart-subtext">ข้อมูลแบบ Real-Time จากทุกแหล่งน้ำในระบบ</p>
-            <div class="chart-container">
-              <canvas id="pieChart"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <h3>สัดส่วนสาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง</h3>
-            <p class="chart-subtext">จำนวนสาขาและหน่วยบริการในพื้นที่ กปภ.เขต 8: 20 สาขา 43 หน่วยบริการ</p>
-            <div class="chart-container">
-              <canvas id="droughtWatchChart"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ)</h3>
-            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ) 33 แห่ง</p>
-            <div class="chart-container">
-              <canvas id="reservoirChart"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนลำน้ำ, ลำห้วย)</h3>
-            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนลำน้ำและลำห้วย) 42 แห่ง</p>
-            <div class="chart-container">
-              <canvas id="riverChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Table Section -->
       <section class="content-section" id="table-section">
         <div class="section-header">
@@ -336,6 +300,43 @@
             <div class="pagination-nav">
               <button class="btn-sort" id="pagination-prev"><i class="fa-solid fa-chevron-left"></i> ก่อนหน้า</button>
               <button class="btn-sort" id="pagination-next">ถัดไป <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="content-section" id="chart-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-chart-pie"></i> กราฟสถิติและภาพรวมสถานการณ์แหล่งน้ำ</h2>
+        </div>
+        <div class="charts-grid charts-grid-4">
+          <div class="chart-card">
+            <h3>สัดส่วนสถานะแหล่งน้ำ</h3>
+            <p class="chart-subtext">ข้อมูลแบบ Real-Time จากทุกแหล่งน้ำในระบบ</p>
+            <div class="chart-container">
+              <canvas id="pieChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>สัดส่วนสาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง</h3>
+            <p class="chart-subtext">จำนวนสาขาและหน่วยบริการในพื้นที่ กปภ.เขต 8: 20 สาขา 43 หน่วยบริการ</p>
+            <div class="chart-container">
+              <canvas id="droughtWatchChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ)</h3>
+            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ) 33 แห่ง</p>
+            <div class="chart-container">
+              <canvas id="reservoirChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนลำน้ำ, ลำห้วย)</h3>
+            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนลำน้ำและลำห้วย) 42 แห่ง</p>
+            <div class="chart-container">
+              <canvas id="riverChart"></canvas>
             </div>
           </div>
         </div>
