@@ -85,7 +85,7 @@ function buildDefaultColumnFilters() {
 // สถานะตัวกรองตารางข้อมูล (columnFilters: checkbox เก็บ "ค่าที่ถูกตัดออก", range เก็บ {min,max}; ว่าง/null หมายถึงไม่กรอง)
 let tableFilterState = {
   search: '',
-  sortBy: null, // null | 'name' | 'percent'
+  sortBy: 'daysRemaining', // null | 'name' | 'percent' | 'daysRemaining'
   columnFilters: buildDefaultColumnFilters()
 };
 
@@ -333,6 +333,13 @@ function applyTableFilters() {
     filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'th'));
   } else if (tableFilterState.sortBy === 'percent') {
     filtered = [...filtered].sort((a, b) => a.percent - b.percent);
+  } else if (tableFilterState.sortBy === 'daysRemaining') {
+    // เรียงจากน้ำดิบคงเหลือน้อยที่สุด (เร่งด่วนที่สุด) ไปมากที่สุด รายการที่ข้อมูลคาดการณ์ผิดปกติจะอยู่ท้ายสุด
+    filtered = [...filtered].sort((a, b) => {
+      const aVal = a.forecastValid ? a.daysRemaining : Infinity;
+      const bVal = b.forecastValid ? b.daysRemaining : Infinity;
+      return aVal - bVal;
+    });
   }
 
   renderTable(filtered);
@@ -849,26 +856,29 @@ function setupEventListeners() {
     searchInput.focus();
   });
 
-  document.getElementById('sort-name').addEventListener('click', () => {
-    tableFilterState.sortBy = 'name';
+  const setSortBy = (sortBy) => {
+    tableFilterState.sortBy = sortBy;
+    document.querySelectorAll('#sort-name, #sort-percent, #sort-days').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`sort-${sortBy === 'daysRemaining' ? 'days' : sortBy}`).classList.add('active');
     applyTableFilters();
-  });
+  };
 
-  document.getElementById('sort-percent').addEventListener('click', () => {
-    tableFilterState.sortBy = 'percent';
-    applyTableFilters();
-  });
+  document.getElementById('sort-name').addEventListener('click', () => setSortBy('name'));
+  document.getElementById('sort-percent').addEventListener('click', () => setSortBy('percent'));
+  document.getElementById('sort-days').addEventListener('click', () => setSortBy('daysRemaining'));
 
   setupColumnFilters();
 
   document.getElementById('filter-clear-all').addEventListener('click', () => {
     tableFilterState = {
       search: '',
-      sortBy: null,
+      sortBy: 'daysRemaining',
       columnFilters: buildDefaultColumnFilters()
     };
     document.getElementById('search-input').value = '';
     document.getElementById('search-clear-btn').style.display = 'none';
+    document.querySelectorAll('#sort-name, #sort-percent, #sort-days').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('sort-days').classList.add('active');
     Object.keys(TABLE_COLUMN_FILTERS).forEach((column) => {
       populateColumnFilterPanel(column);
       updateColumnFilterButtonState(column);
