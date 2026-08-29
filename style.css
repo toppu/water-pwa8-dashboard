@@ -440,6 +440,56 @@ body {
   overflow-x: auto;
 }
 
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pagination-size select {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 5px 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pagination-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.pagination-nav .btn-sort:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-nav .btn-sort:disabled:hover {
+  background: #fff;
+  color: var(--text-dark);
+  border-color: var(--glass-border);
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

@@ -8,6 +8,9 @@ let map, markersGroup;
 let pieChartInstance = null;
 let selectedWaterItem = null;
 let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคงเหลือ (วัน), 'percent' = ความจุน้ำ (%)
+let currentTableData = [];
+let currentPage = 1;
+let pageSize = 10; // จำนวน, หรือ 'all'
 
 // ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
 const FORECAST_MAX_REASONABLE_DAYS = 3650;
@@ -326,20 +329,37 @@ function focusOnMap(item) {
 // 4. ตารางข้อมูล
 // ==========================================
 function renderTable(data) {
+  currentTableData = data;
+  currentPage = 1;
+  renderTablePage();
+}
+
+function renderTablePage() {
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = '';
 
-  if (data.length === 0) {
+  const total = currentTableData.length;
+
+  if (total === 0) {
     tbody.innerHTML = '<tr><td colspan="9" class="text-center">ไม่พบข้อมูล</td></tr>';
+    renderPaginationControls(0, 0, 0, 1);
     return;
   }
 
-  data.forEach((item, index) => {
+  const effectivePageSize = pageSize === 'all' ? total : pageSize;
+  const totalPages = Math.max(1, Math.ceil(total / effectivePageSize));
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+
+  const startIdx = (currentPage - 1) * effectivePageSize;
+  const endIdx = Math.min(startIdx + effectivePageSize, total);
+  const pageData = currentTableData.slice(startIdx, endIdx);
+
+  pageData.forEach((item, index) => {
     const status = getStatusTheme(item.percent);
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
-      <td>${index + 1}</td>
+      <td>${startIdx + index + 1}</td>
       <td><strong>${item.name}</strong></td>
       <td>${item.branch}</td>
       <td><strong>${item.percent}%</strong></td>
@@ -356,6 +376,25 @@ function renderTable(data) {
 
     tbody.appendChild(tr);
   });
+
+  renderPaginationControls(startIdx, endIdx, total, totalPages);
+}
+
+function renderPaginationControls(startIdx, endIdx, total, totalPages) {
+  const info = document.getElementById('pagination-info');
+  const prevBtn = document.getElementById('pagination-prev');
+  const nextBtn = document.getElementById('pagination-next');
+
+  if (total === 0) {
+    info.innerText = 'ไม่พบข้อมูล';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  info.innerText = `แสดง ${startIdx + 1}-${endIdx} จาก ${total.toLocaleString()} รายการ (หน้า ${currentPage}/${totalPages})`;
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
 }
 
 // ==========================================
@@ -507,6 +546,28 @@ function setupEventListeners() {
   document.getElementById('sort-percent').addEventListener('click', () => {
     const sorted = [...waterData].sort((a, b) => a.percent - b.percent);
     renderTable(sorted);
+  });
+
+  document.getElementById('page-size-select').addEventListener('change', (e) => {
+    pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
+    currentPage = 1;
+    renderTablePage();
+  });
+
+  document.getElementById('pagination-prev').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTablePage();
+    }
+  });
+
+  document.getElementById('pagination-next').addEventListener('click', () => {
+    const effectivePageSize = pageSize === 'all' ? currentTableData.length : pageSize;
+    const totalPages = Math.max(1, Math.ceil(currentTableData.length / effectivePageSize));
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTablePage();
+    }
   });
 
   document.querySelectorAll('#map-color-toggle .btn-sort').forEach(btn => {

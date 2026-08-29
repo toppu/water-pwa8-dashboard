@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829">
+  <link rel="stylesheet" href="style.css?v=20260829c">
 </head>
 <body>
 
@@ -197,6 +197,23 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination">
+            <div class="pagination-size">
+              <label for="page-size-select">แสดง</label>
+              <select id="page-size-select">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="all">ทั้งหมด</option>
+              </select>
+              <span>แถวต่อหน้า</span>
+            </div>
+            <div class="pagination-info" id="pagination-info"></div>
+            <div class="pagination-nav">
+              <button class="btn-sort" id="pagination-prev"><i class="fa-solid fa-chevron-left"></i> ก่อนหน้า</button>
+              <button class="btn-sort" id="pagination-next">ถัดไป <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -259,6 +276,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829b"></script>
+  <script src="script.js?v=20260829c"></script>
 </body>
 </html>
