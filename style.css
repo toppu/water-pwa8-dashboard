@@ -298,7 +298,9 @@ body {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
-  height: 480px;
+  height: 75vh;
+  min-height: 480px;
+  max-height: 800px;
 }
 
 #map {
