@@ -6,7 +6,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwdXY5dvT9RR3u-CXmZKccC
 let waterData = [];
 let map, markersGroup;
 let pieChartInstance = null;
-let barChartInstance = null;
 let selectedWaterItem = null;
 let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคงเหลือ (วัน), 'percent' = ความจุน้ำ (%)
 
@@ -386,38 +385,6 @@ function renderCharts() {
       maintainAspectRatio: false,
       plugins: {
         legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } }
-      }
-    }
-  });
-
-  // 2. Bar Chart
-  const labels = waterData.map(d => d.name);
-  const percentValues = waterData.map(d => d.percent);
-  const barColors = waterData.map(d => getStatusTheme(d.percent).bgHex);
-
-  const barCtx = document.getElementById('barChart').getContext('2d');
-  if (barChartInstance) barChartInstance.destroy();
-
-  barChartInstance = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'เปอร์เซ็นต์น้ำคงเหลือ (%)',
-        data: percentValues,
-        backgroundColor: barColors,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: 100 },
-        x: { ticks: { font: { family: 'Sarabun' } } }
-      },
-      plugins: {
-        legend: { display: false }
       }
     }
   });

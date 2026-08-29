@@ -427,6 +427,11 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.charts-grid-1 {
+  grid-template-columns: minmax(280px, 480px);
+  justify-content: center;
+}
+
 /* Table Card */
 .table-card {
   background: var(--card-bg);
