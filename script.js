@@ -387,7 +387,12 @@ function renderCharts() {
         legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } },
         tooltip: {
           callbacks: {
-            title: () => ''
+            title: () => '',
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+              return `${ctx.label}: ${ctx.parsed.toLocaleString()} แห่ง (${pct}%)`;
+            }
           }
         }
       }
