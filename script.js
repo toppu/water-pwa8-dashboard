@@ -17,6 +17,7 @@ let tableFilterState = {
   search: '',
   sortBy: null, // null | 'name' | 'percent'
   columnFilters: {
+    name: new Set(),
     branch: new Set(),
     status: new Set(),
     forecast: new Set()
@@ -25,6 +26,12 @@ let tableFilterState = {
 
 // นิยามตัวเลือกของตัวกรองแบบ Excel ในแต่ละคอลัมน์
 const TABLE_COLUMN_FILTERS = {
+  name: {
+    getValue: (d) => d.name,
+    getOptions: () => [...new Set(waterData.map((d) => d.name))]
+      .sort((a, b) => a.localeCompare(b, 'th'))
+      .map((n) => ({ value: n, label: n }))
+  },
   branch: {
     getValue: (d) => d.branch,
     getOptions: () => [...new Set(waterData.map((d) => d.branch))]
@@ -723,7 +730,7 @@ function setupEventListeners() {
     tableFilterState = {
       search: '',
       sortBy: null,
-      columnFilters: { branch: new Set(), status: new Set(), forecast: new Set() }
+      columnFilters: { name: new Set(), branch: new Set(), status: new Set(), forecast: new Set() }
     };
     document.getElementById('search-input').value = '';
     Object.keys(TABLE_COLUMN_FILTERS).forEach(populateColumnFilterPanel);

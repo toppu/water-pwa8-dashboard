@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829e">
+  <link rel="stylesheet" href="style.css?v=20260829f">
 </head>
 <body>
 
@@ -183,7 +183,21 @@
               <thead>
                 <tr>
                   <th>ลำดับ</th>
-                  <th>ชื่อแหล่งน้ำ</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>ชื่อแหล่งน้ำ</span>
+                      <button class="th-filter-btn" data-column="name" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel" data-panel="name">
+                        <input type="text" class="th-filter-search" placeholder="ค้นหาชื่อ...">
+                        <label class="th-filter-all"><input type="checkbox" checked> เลือกทั้งหมด</label>
+                        <div class="th-filter-options"></div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                   <th>
                     <div class="th-filter">
                       <span>สาขา</span>
@@ -317,6 +331,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829e"></script>
+  <script src="script.js?v=20260829f"></script>
 </body>
 </html>
