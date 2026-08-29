@@ -159,6 +159,13 @@ body {
 .last-update {
   font-size: 13px;
   color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.print-toolbar {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 /* Search Bar */
@@ -932,4 +939,114 @@ body {
   .top-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .header-status { text-align: left; }
   .main-content { padding: 16px; }
+}
+/* ==========================================
+   Print
+   ========================================== */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  /* ซ่อนส่วนที่ไม่จำเป็นบนกระดาษ */
+  .sidebar,
+  .search-container,
+  .print-toolbar,
+  #map-color-toggle,
+  #map-fullscreen-btn,
+  .map-size-control,
+  .th-filter-btn,
+  .th-filter-panel,
+  .table-pagination .pagination-nav,
+  .pagination-size,
+  .card-subtext,
+  .modal {
+    display: none !important;
+  }
+
+  .app-container {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 0;
+    gap: 14px;
+  }
+
+  .content-section,
+  .card,
+  .chart-card,
+  .table-card,
+  .map-card,
+  .about-card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    break-inside: avoid;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .charts-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    page-break-before: always;
+  }
+
+  .chart-container {
+    height: 220px;
+  }
+
+  #map-section {
+    page-break-before: always;
+  }
+
+  .map-card {
+    height: 480px !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .data-table {
+    font-size: 11px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 6px 8px;
+  }
+
+  .table-pagination {
+    justify-content: center;
+  }
+}
+
+/* โหมดพิมพ์เฉพาะแผนที่ ขนาด A3 (สลับด้วย JS ก่อนเรียก window.print()) */
+body.printing-map-a3 .sidebar,
+body.printing-map-a3 .top-header,
+body.printing-map-a3 .search-container,
+body.printing-map-a3 .cards-grid,
+body.printing-map-a3 #table-section,
+body.printing-map-a3 #chart-section,
+body.printing-map-a3 #about-section,
+body.printing-map-a3 .map-header-controls {
+  display: none !important;
+}
+
+body.printing-map-a3 .main-content {
+  margin-left: 0;
+  padding: 0;
+}
+
+body.printing-map-a3 #map-section {
+  border: none;
+}
+
+body.printing-map-a3 .map-card {
+  height: 90vh !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border: none;
+  box-shadow: none;
 }

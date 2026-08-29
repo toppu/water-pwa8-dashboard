@@ -6,7 +6,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwdXY5dvT9RR3u-CXmZKccC
 let waterData = [];
 let map, markersGroup;
 let pieChartInstance = null;
+let droughtWatchChartInstance = null;
+let reservoirChartInstance = null;
+let riverChartInstance = null;
 let selectedWaterItem = null;
+let printRestoreState = null; // สถานะสำหรับกู้คืนหลังพิมพ์เสร็จ
 let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคงเหลือ (วัน), 'percent' = ความจุน้ำ (%)
 let currentTableData = [];
 let currentPage = 1;
@@ -199,6 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => {
     fetchData();
   }, 300000);
+
+  // กู้คืนสถานะหลังพิมพ์เสร็จ (afterprint ใช้ไม่ได้ในบางเบราว์เซอร์ จึงใช้ matchMedia คู่กันไว้)
+  window.addEventListener('afterprint', restoreAfterPrint);
+  if (window.matchMedia) {
+    window.matchMedia('print').addEventListener('change', (mql) => {
+      if (!mql.matches) restoreAfterPrint();
+    });
+  }
 });
 
 // ==========================================
@@ -752,7 +764,7 @@ function renderDonutChart(canvasId, labels, data, colors) {
 
 function renderDroughtOverviewCharts() {
   // สาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง (รวม 20 สาขา + 43 หน่วยบริการ = 63)
-  renderDonutChart(
+  droughtWatchChartInstance = renderDonutChart(
     'droughtWatchChart',
     ['ปกติ', 'เฝ้าระวังด้านปริมาณน้ำ', 'เฝ้าระวังด้านคุณภาพน้ำ', 'เฝ้าระวังด้านคุณภาพและปริมาณ'],
     [58, 2, 2, 1],
@@ -760,7 +772,7 @@ function renderDroughtOverviewCharts() {
   );
 
   // แหล่งน้ำดิบหลัก ส่วนอ่างเก็บน้ำ (33 แห่ง)
-  renderDonutChart(
+  reservoirChartInstance = renderDonutChart(
     'reservoirChart',
     ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
     [8, 13, 9, 3],
@@ -768,7 +780,7 @@ function renderDroughtOverviewCharts() {
   );
 
   // แหล่งน้ำดิบหลัก ส่วนลำน้ำ/ลำห้วย (42 แห่ง)
-  renderDonutChart(
+  riverChartInstance = renderDonutChart(
     'riverChart',
     ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
     [12, 13, 13, 4],
@@ -906,6 +918,9 @@ function setupEventListeners() {
   document.getElementById('map-fullscreen-btn').addEventListener('click', toggleMapFullscreen);
   document.getElementById('map-size-select').addEventListener('change', (e) => setMapSize(e.target.value));
 
+  document.getElementById('print-dashboard-btn').addEventListener('click', printDashboard);
+  document.getElementById('print-map-a3-btn').addEventListener('click', printMapA3);
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeAllModals();
@@ -955,6 +970,78 @@ function setMapSize(size) {
       if (map) map.invalidateSize();
     }, 300);
   }
+}
+
+// ==========================================
+// 7. การพิมพ์
+// ==========================================
+function setPrintPageSize(cssSize) {
+  document.getElementById('dynamic-print-page-style').textContent = `@page { size: ${cssSize}; margin: 10mm; }`;
+}
+
+// พิมพ์ทั้งแดชบอร์ด (A4 แนวนอน): แสดงข้อมูลตารางครบทุกแถวและปรับกราฟ/แผนที่ให้พร้อมพิมพ์
+function printDashboard() {
+  setPrintPageSize('A4 landscape');
+
+  const mapWasHidden = document.getElementById('map-section').classList.contains('map-hidden');
+  printRestoreState = {
+    type: 'dashboard',
+    pageSize: pageSize,
+    currentPage: currentPage,
+    mapWasHidden: mapWasHidden
+  };
+
+  if (mapWasHidden) setMapSize('medium');
+
+  pageSize = 'all';
+  currentPage = 1;
+  renderTablePage();
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+    [pieChartInstance, droughtWatchChartInstance, reservoirChartInstance, riverChartInstance].forEach((chart) => {
+      if (chart) chart.resize();
+    });
+    window.print();
+  }, 350);
+}
+
+// พิมพ์เฉพาะแผนที่ ขนาด A3 แนวนอน เพื่อให้เห็นรายละเอียดหมุดและป้ายชื่อชัดเจนขึ้น
+function printMapA3() {
+  setPrintPageSize('A3 landscape');
+
+  const mapWasHidden = document.getElementById('map-section').classList.contains('map-hidden');
+  printRestoreState = { type: 'map-a3', mapWasHidden: mapWasHidden };
+
+  if (mapWasHidden) setMapSize('medium');
+  document.body.classList.add('printing-map-a3');
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+    window.print();
+  }, 350);
+}
+
+function restoreAfterPrint() {
+  if (!printRestoreState) return;
+  const state = printRestoreState;
+  printRestoreState = null;
+
+  setPrintPageSize('A4 landscape');
+
+  if (state.type === 'dashboard') {
+    pageSize = state.pageSize;
+    currentPage = state.currentPage;
+    renderTablePage();
+  } else if (state.type === 'map-a3') {
+    document.body.classList.remove('printing-map-a3');
+  }
+
+  if (state.mapWasHidden) setMapSize('hidden');
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 300);
 }
 
 function openListModal(title, items) {

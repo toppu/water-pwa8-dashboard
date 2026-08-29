@@ -17,7 +17,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829k">
+  <link rel="stylesheet" href="style.css?v=20260829l">
+
+  <!-- กำหนดขนาดกระดาษสำหรับพิมพ์ ปรับค่าด้วย JS ก่อนเรียก window.print() -->
+  <style id="dynamic-print-page-style">@page { size: A4 landscape; margin: 10mm; }</style>
 </head>
 <body>
 
@@ -61,6 +64,14 @@
           </div>
           <div class="last-update">
             <i class="fa-regular fa-clock"></i> อัปเดตล่าสุด: <span id="update-time">กำลังโหลด...</span>
+          </div>
+          <div class="print-toolbar">
+            <button class="btn-sort" id="print-dashboard-btn" title="พิมพ์แดชบอร์ดทั้งหมด (A4 แนวนอน)">
+              <i class="fa-solid fa-print"></i> พิมพ์แดชบอร์ด
+            </button>
+            <button class="btn-sort" id="print-map-a3-btn" title="พิมพ์เฉพาะแผนที่ ขนาด A3 แนวนอน">
+              <i class="fa-solid fa-map"></i> พิมพ์แผนที่ (A3)
+            </button>
           </div>
         </div>
       </header>
@@ -413,6 +424,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829k"></script>
+  <script src="script.js?v=20260829l"></script>
 </body>
 </html>
