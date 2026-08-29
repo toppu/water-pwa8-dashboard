@@ -291,6 +291,13 @@ body {
   gap: 10px;
 }
 
+.map-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Map Card */
 .map-card {
   background: var(--card-bg);
@@ -301,6 +308,26 @@ body {
   height: 75vh;
   min-height: 480px;
   max-height: 800px;
+}
+
+/* Map Fullscreen Focus Mode */
+#map-section.map-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg-light);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+#map-section.map-fullscreen .map-card {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  max-height: none;
 }
 
 #map {

@@ -495,9 +495,33 @@ function setupEventListeners() {
     btn.addEventListener('click', closeAllModals);
   });
 
+  document.getElementById('map-fullscreen-btn').addEventListener('click', toggleMapFullscreen);
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
+    if (e.key === 'Escape') {
+      closeAllModals();
+      if (document.getElementById('map-section').classList.contains('map-fullscreen')) {
+        toggleMapFullscreen();
+      }
+    }
   });
+}
+
+// สลับโหมดขยายแผนที่เต็มจอ เพื่อให้ผู้ใช้โฟกัสที่แผนที่ได้
+function toggleMapFullscreen() {
+  const section = document.getElementById('map-section');
+  const btn = document.getElementById('map-fullscreen-btn');
+  const isFullscreen = section.classList.toggle('map-fullscreen');
+
+  document.body.style.overflow = isFullscreen ? 'hidden' : '';
+  btn.innerHTML = isFullscreen
+    ? '<i class="fa-solid fa-compress"></i> ออกจากเต็มจอ'
+    : '<i class="fa-solid fa-expand"></i> ขยายแผนที่';
+
+  // Leaflet ต้องคำนวณขนาด container ใหม่หลังเปลี่ยน layout
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 300);
 }
 
 function openListModal(title, items) {
