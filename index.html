@@ -97,16 +97,37 @@
             <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> คลิกเพื่อดูจุดวิกฤต</p>
           </div>
         </div>
+
+        <div class="card card-clickable" id="card-flagged">
+          <div class="card-icon bg-amber">
+            <i class="fa-solid fa-calendar-xmark"></i>
+          </div>
+          <div class="card-info">
+            <h3>ข้อมูลวันที่คาดการณ์ผิดปกติ</h3>
+            <div class="card-value text-amber" id="flagged-count">0</div>
+            <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> คลิกเพื่อตรวจสอบรายการ</p>
+          </div>
+        </div>
       </section>
 
       <!-- Map Section -->
       <section class="content-section" id="map-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-map-location-dot"></i> แผนที่ตำแหน่งแหล่งน้ำ</h2>
+          <div class="map-header-controls">
+            <div class="table-actions" id="map-color-toggle">
+              <button class="btn-sort active" data-mode="raw" id="mode-raw"><i class="fa-solid fa-tint"></i> ปริมาณน้ำดิบคงเหลือ (วัน)</button>
+              <button class="btn-sort" data-mode="percent" id="mode-percent"><i class="fa-solid fa-percent"></i> ความจุน้ำ (%)</button>
+            </div>
+            <button class="btn-sort" id="map-fullscreen-btn" title="ขยายแผนที่เต็มจอ">
+              <i class="fa-solid fa-expand"></i> ขยายแผนที่
+            </button>
+          </div>
         </div>
         <div class="map-card">
           <div id="map"></div>
         </div>
+        <div class="map-legend" id="map-legend"></div>
       </section>
 
       <!-- Charts Section -->
@@ -125,6 +146,36 @@
             <h3>เปรียบเทียบเปอร์เซ็นต์น้ำรายแหล่งน้ำ (%)</h3>
             <div class="chart-container">
               <canvas id="barChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Drought Watch Overview Section -->
+      <section class="content-section" id="drought-overview-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-triangle-exclamation"></i> ภาพรวมสถานการณ์ภัยแล้งและแหล่งน้ำดิบหลัก</h2>
+        </div>
+        <div class="charts-grid charts-grid-3">
+          <div class="chart-card">
+            <h3>สัดส่วนสาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง</h3>
+            <p class="chart-subtext">จำนวนสาขาและหน่วยบริการในพื้นที่ กปภ.เขต 8: 20 สาขา 43 หน่วยบริการ</p>
+            <div class="chart-container">
+              <canvas id="droughtWatchChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ)</h3>
+            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนอ่างเก็บน้ำ) 33 แห่ง</p>
+            <div class="chart-container">
+              <canvas id="reservoirChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>สัดส่วนปริมาณแหล่งน้ำดิบหลัก (ส่วนลำน้ำ, ลำห้วย)</h3>
+            <p class="chart-subtext">จำนวนแหล่งน้ำดิบหลัก (ส่วนลำน้ำและลำห้วย) 42 แห่ง</p>
+            <div class="chart-container">
+              <canvas id="riverChart"></canvas>
             </div>
           </div>
         </div>

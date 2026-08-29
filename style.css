@@ -246,6 +246,7 @@ body {
 
 .bg-blue { background: rgba(2, 132, 199, 0.1); color: var(--accent-blue); }
 .bg-red { background: rgba(239, 68, 68, 0.1); color: var(--status-critical); }
+.bg-amber { background: rgba(245, 158, 11, 0.1); color: var(--status-warning); }
 
 .card-info h3 {
   font-size: 14px;
@@ -261,6 +262,7 @@ body {
 }
 
 .text-red { color: var(--status-critical); }
+.text-amber { color: var(--status-warning); }
 
 .card-subtext {
   font-size: 12px;
@@ -289,6 +291,13 @@ body {
   gap: 10px;
 }
 
+.map-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Map Card */
 .map-card {
   background: var(--card-bg);
@@ -296,7 +305,29 @@ body {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
-  height: 480px;
+  height: 75vh;
+  min-height: 480px;
+  max-height: 800px;
+}
+
+/* Map Fullscreen Focus Mode */
+#map-section.map-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg-light);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+#map-section.map-fullscreen .map-card {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  max-height: none;
 }
 
 #map {
@@ -321,6 +352,43 @@ body {
   border-top-color: rgba(15, 23, 42, 0.85);
 }
 
+.map-label-flagged {
+  background: rgba(180, 83, 9, 0.9);
+}
+
+/* Map Legend */
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.legend-swatch-flagged {
+  border: 2px dashed #b45309;
+}
+
 /* Charts Grid */
 .charts-grid {
   display: grid;
@@ -342,10 +410,21 @@ body {
   margin-bottom: 16px;
 }
 
+.chart-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -12px;
+  margin-bottom: 16px;
+}
+
 .chart-container {
   position: relative;
   height: 280px;
   width: 100%;
+}
+
+.charts-grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 /* Table Card */
@@ -399,6 +478,7 @@ body {
 .badge-normal { background: rgba(16, 185, 129, 0.15); color: #047857; }
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
 .badge-critical { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+.badge-flagged { background: rgba(148, 163, 184, 0.2); color: #475569; border: 1px dashed #f59e0b; }
 
 .table-actions {
   display: flex;
@@ -418,6 +498,12 @@ body {
 }
 
 .btn-sort:hover {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+.btn-sort.active {
   background: var(--accent-blue);
   color: #fff;
   border-color: var(--accent-blue);

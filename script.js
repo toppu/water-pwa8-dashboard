@@ -8,6 +8,27 @@ let map, markersGroup;
 let pieChartInstance = null;
 let barChartInstance = null;
 let selectedWaterItem = null;
+let mapColorMode = 'raw'; // 'raw' = ปริมาณน้ำดิบคงเหลือ (วัน), 'percent' = ความจุน้ำ (%)
+
+// ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
+const FORECAST_MAX_REASONABLE_DAYS = 3650;
+
+// คำอธิบายเกณฑ์สีของแต่ละโหมด สำหรับแสดงเป็น Legend ใต้แผนที่
+const MAP_LEGEND_ITEMS = {
+  raw: [
+    { color: '#0284c7', label: 'มากกว่า 360 วัน' },
+    { color: '#10b981', label: '211 - 360 วัน' },
+    { color: '#f59e0b', label: '121 - 210 วัน' },
+    { color: '#ef4444', label: 'น้อยกว่า 120 วัน' },
+    { color: '#94a3b8', label: 'ข้อมูลวันที่คาดการณ์ผิดปกติ', flagged: true }
+  ],
+  percent: [
+    { color: '#0284c7', label: 'อุดมสมบูรณ์ (มากกว่า 80%)' },
+    { color: '#10b981', label: 'ปกติ (51% - 80%)' },
+    { color: '#f59e0b', label: 'เฝ้าระวัง (30% - 50%)' },
+    { color: '#ef4444', label: 'วิกฤต (น้อยกว่า 30%)' }
+  ]
+};
 
 // ==========================================
 // Helper Function: แปลงวันที่เป็นภาษาไทย (เช่น 21 กันยายน 2574)
@@ -51,6 +72,35 @@ function getStatusTheme(percent) {
   }
 }
 
+// Helper คำนวณสีธีมตามจำนวนวันน้ำดิบคงเหลือ (4 ระดับ)
+function getStatusThemeByDays(days) {
+  if (days === null || days === undefined || isNaN(days)) {
+    return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚪ ไม่ระบุ', badgeClass: 'badge-normal' };
+  } else if (days > 360) {
+    return { color: '#0284c7', bgHex: '#0284c7', label: '🔵 มากกว่า 360 วัน', badgeClass: 'badge-normal' };
+  } else if (days >= 211) {
+    return { color: '#10b981', bgHex: '#10b981', label: '🟢 211-360 วัน', badgeClass: 'badge-normal' };
+  } else if (days >= 121) {
+    return { color: '#f59e0b', bgHex: '#f59e0b', label: '🟡 121-210 วัน', badgeClass: 'badge-warning' };
+  } else {
+    return { color: '#ef4444', bgHex: '#ef4444', label: '🔴 น้อยกว่า 120 วัน', badgeClass: 'badge-critical' };
+  }
+}
+
+// ธีมสำหรับจุดที่ข้อมูลวันที่คาดการณ์จากชีตต้นทางน่าจะผิดปกติ
+function getFlaggedTheme() {
+  return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚠️ ข้อมูลวันที่คาดการณ์ผิดปกติ', badgeClass: 'badge-flagged' };
+}
+
+// เลือกธีมสีสำหรับ Marker บนแผนที่ ตามโหมดที่ผู้ใช้เลือก (mapColorMode)
+function getMapMarkerTheme(item) {
+  if (mapColorMode === 'raw') {
+    if (!item.forecastValid) return getFlaggedTheme();
+    return getStatusThemeByDays(item.daysRemaining);
+  }
+  return getStatusTheme(item.percent);
+}
+
 // ==========================================
 // Initialization เมื่อโหลด DOM
 // ==========================================
@@ -60,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   fetchData();
   setupEventListeners();
+  renderDroughtOverviewCharts();
 
   // ตั้งเวลา Refresh ข้อมูลอัตโนมัติทุก 5 นาที (300,000 ms)
   setInterval(() => {
@@ -92,6 +143,24 @@ async function fetchData() {
       const rawForecast = item.forecast || item.Forecast || 'ไม่ระบุ';
       const forecastVal = formatThaiDate(rawForecast);
 
+      // คำนวณจำนวนวันที่น้ำดิบคงเหลือ จากวันที่คาดการณ์
+      const forecastDateObj = new Date(rawForecast);
+      let daysRemaining = null;
+      let forecastValid = false;
+
+      if (!isNaN(forecastDateObj.getTime())) {
+        // ชีตต้นทางบางแถวบันทึกปี พ.ศ. ตรงๆ ลงใน ISO string (เช่น "2575-...")
+        // ซึ่ง JS จะตีความเป็นปี ค.ศ. 2575 ทำให้ห่างจากปัจจุบันหลายร้อยปีโดยไม่ตั้งใจ
+        // จึงต้องแปลงกลับเป็นปี ค.ศ. จริงก่อนคำนวณจำนวนวัน (ใช้เกณฑ์เดียวกับ formatThaiDate)
+        const correctedDate = new Date(forecastDateObj);
+        if (correctedDate.getUTCFullYear() >= 2400) {
+          correctedDate.setUTCFullYear(correctedDate.getUTCFullYear() - 543);
+        }
+        daysRemaining = Math.ceil((correctedDate - new Date()) / (1000 * 60 * 60 * 24));
+        // วันที่คาดการณ์ที่ยังติดลบ (ผ่านไปแล้ว) หรือไกลเกินจริง ถือว่าข้อมูลต้นทางน่าจะผิดปกติ
+        forecastValid = daysRemaining >= 0 && daysRemaining <= FORECAST_MAX_REASONABLE_DAYS;
+      }
+
       return {
         name: item.name || 'ไม่ระบุชื่อ',
         branch: item.branch || 'ไม่ระบุสาขา',
@@ -103,7 +172,10 @@ async function fetchData() {
         percent: percent,
         production: Number(item.production) || 0,
         demand: Number(item.demand) || 0,
-        forecast: forecastVal
+        forecast: forecastVal,
+        forecastRaw: rawForecast,
+        daysRemaining: daysRemaining,
+        forecastValid: forecastValid
       };
     }).filter(d => !isNaN(d.lat) && !isNaN(d.lng));
 
@@ -155,9 +227,11 @@ function animateCount(elementId, targetValue) {
 function updateCards() {
   const total = waterData.length;
   const critical = waterData.filter(d => d.percent < 30).length;
+  const flagged = waterData.filter(d => !d.forecastValid).length;
 
   animateCount('total-count', total);
   animateCount('critical-count', critical);
+  animateCount('flagged-count', flagged);
 }
 
 // ==========================================
@@ -173,11 +247,25 @@ function initMap() {
   markersGroup = L.layerGroup().addTo(map);
 }
 
+// แสดงคำอธิบายเกณฑ์สีของโหมดที่กำลังเลือกอยู่ใต้แผนที่
+function renderMapLegend() {
+  const container = document.getElementById('map-legend');
+  const items = MAP_LEGEND_ITEMS[mapColorMode];
+
+  container.innerHTML = items.map(item => `
+    <div class="legend-item">
+      <span class="legend-swatch${item.flagged ? ' legend-swatch-flagged' : ''}" style="background:${item.color};"></span>
+      <span>${item.label}</span>
+    </div>
+  `).join('');
+}
+
 function renderMapMarkers() {
   markersGroup.clearLayers();
+  renderMapLegend();
 
   waterData.forEach(item => {
-    const status = getStatusTheme(item.percent);
+    const status = getMapMarkerTheme(item);
 
     const marker = L.circleMarker([item.lat, item.lng], {
       radius: 9,
@@ -185,15 +273,20 @@ function renderMapMarkers() {
       color: '#ffffff',
       weight: 2,
       opacity: 1,
-      fillOpacity: 0.9
+      fillOpacity: 0.9,
+      dashArray: item.forecastValid ? null : '3, 3'
     });
 
-    marker.bindTooltip(item.name, {
+    marker.bindTooltip(item.name + (item.forecastValid ? '' : ' ⚠️'), {
       permanent: true,
       direction: 'top',
-      className: 'map-label',
+      className: item.forecastValid ? 'map-label' : 'map-label map-label-flagged',
       offset: [0, -8]
     });
+
+    const forecastWarning = item.forecastValid
+      ? ''
+      : `<tr><td colspan="2" style="color:#b45309; background:rgba(245,158,11,0.12); border-radius:4px;">⚠️ วันที่คาดการณ์นี้ดูผิดปกติ (ค่าดิบ: ${item.forecastRaw}) ควรตรวจสอบกับข้อมูลต้นทาง</td></tr>`;
 
     const popupContent = `
       <div style="font-family: 'Sarabun', sans-serif; min-width:240px;">
@@ -204,9 +297,11 @@ function renderMapMarkers() {
           <tr><td>ความจุต่ำสุด,ระดับต่ำสุด</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
           <tr><td>ความจุน้ำปัจจุบัน,ระดับน้ำปัจจุบัน</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
           <tr><td>เปอร์เซ็นต์แหล่งน้ำ</td><td><strong>${item.percent}%</strong></td></tr>
+          <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
           <tr><td>คาดว่าใช้ได้ถึง</td><td><strong>${item.forecast}</strong></td></tr>
           <tr><td>กำลังการผลิต</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
           <tr><td>ความต้องการใช้น้ำ</td><td>${item.demand.toLocaleString()} คน</td></tr>
+          ${forecastWarning}
         </table>
       </div>
     `;
@@ -250,7 +345,7 @@ function renderTable(data) {
       <td>${item.branch}</td>
       <td><strong>${item.percent}%</strong></td>
       <td>${item.current.toLocaleString()}</td>
-      <td><strong>${item.forecast}</strong></td>
+      <td><strong>${item.forecast}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
       <td>${item.production.toLocaleString()}</td>
       <td>${item.demand.toLocaleString()}</td>
       <td><span class="badge ${status.badgeClass}">${status.label}</span></td>
@@ -329,6 +424,62 @@ function renderCharts() {
 }
 
 // ==========================================
+// 5b. กราฟภาพรวมสถานการณ์ภัยแล้ง (ข้อมูลสรุปแบบ Static จากรายงาน กปภ.เขต 8)
+// ==========================================
+function renderDonutChart(canvasId, labels, data, colors) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{ data: data, backgroundColor: colors }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' }, boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = ((ctx.parsed / total) * 100).toFixed(1);
+              return `${ctx.label}: ${ctx.parsed.toLocaleString()} แห่ง (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDroughtOverviewCharts() {
+  // สาขา/หน่วยบริการที่เฝ้าระวังภัยแล้ง (รวม 20 สาขา + 43 หน่วยบริการ = 63)
+  renderDonutChart(
+    'droughtWatchChart',
+    ['ปกติ', 'เฝ้าระวังด้านปริมาณน้ำ', 'เฝ้าระวังด้านคุณภาพน้ำ', 'เฝ้าระวังด้านคุณภาพและปริมาณ'],
+    [58, 2, 2, 1],
+    ['#10b981', '#f59e0b', '#38bdf8', '#1e3a8a']
+  );
+
+  // แหล่งน้ำดิบหลัก ส่วนอ่างเก็บน้ำ (33 แห่ง)
+  renderDonutChart(
+    'reservoirChart',
+    ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
+    [8, 13, 9, 3],
+    ['#ef4444', '#f59e0b', '#10b981', '#0284c7']
+  );
+
+  // แหล่งน้ำดิบหลัก ส่วนลำน้ำ/ลำห้วย (42 แห่ง)
+  renderDonutChart(
+    'riverChart',
+    ['น้อยกว่า 30%', 'ระหว่าง 30-50%', 'ระหว่าง 51-80%', 'มากกว่า 80%'],
+    [12, 13, 13, 4],
+    ['#ef4444', '#f59e0b', '#10b981', '#0284c7']
+  );
+}
+
+// ==========================================
 // 6. Modals และ Event Handlers
 // ==========================================
 function setupEventListeners() {
@@ -339,6 +490,11 @@ function setupEventListeners() {
   document.getElementById('card-critical').addEventListener('click', () => {
     const criticalList = waterData.filter(d => d.percent < 30);
     openListModal('รายการแหล่งน้ำวิกฤต (< 30%)', criticalList);
+  });
+
+  document.getElementById('card-flagged').addEventListener('click', () => {
+    const flaggedList = waterData.filter(d => !d.forecastValid);
+    openListModal('รายการที่ข้อมูลวันที่คาดการณ์ผิดปกติ', flaggedList);
   });
 
   const handleSearch = () => {
@@ -375,6 +531,16 @@ function setupEventListeners() {
     renderTable(sorted);
   });
 
+  document.querySelectorAll('#map-color-toggle .btn-sort').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mode === mapColorMode) return;
+      mapColorMode = btn.dataset.mode;
+      document.querySelectorAll('#map-color-toggle .btn-sort').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMapMarkers();
+    });
+  });
+
   document.getElementById('btn-show-map').addEventListener('click', () => {
     if (selectedWaterItem) {
       closeAllModals();
@@ -386,9 +552,33 @@ function setupEventListeners() {
     btn.addEventListener('click', closeAllModals);
   });
 
+  document.getElementById('map-fullscreen-btn').addEventListener('click', toggleMapFullscreen);
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
+    if (e.key === 'Escape') {
+      closeAllModals();
+      if (document.getElementById('map-section').classList.contains('map-fullscreen')) {
+        toggleMapFullscreen();
+      }
+    }
   });
+}
+
+// สลับโหมดขยายแผนที่เต็มจอ เพื่อให้ผู้ใช้โฟกัสที่แผนที่ได้
+function toggleMapFullscreen() {
+  const section = document.getElementById('map-section');
+  const btn = document.getElementById('map-fullscreen-btn');
+  const isFullscreen = section.classList.toggle('map-fullscreen');
+
+  document.body.style.overflow = isFullscreen ? 'hidden' : '';
+  btn.innerHTML = isFullscreen
+    ? '<i class="fa-solid fa-compress"></i> ออกจากเต็มจอ'
+    : '<i class="fa-solid fa-expand"></i> ขยายแผนที่';
+
+  // Leaflet ต้องคำนวณขนาด container ใหม่หลังเปลี่ยน layout
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 300);
 }
 
 function openListModal(title, items) {
@@ -405,7 +595,7 @@ function openListModal(title, items) {
       div.className = 'modal-list-item';
       div.innerHTML = `
         <div>
-          <strong>${item.name}</strong>
+          <strong>${item.name}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}
           <br><small style="color:#64748b;">${item.branch}</small>
         </div>
         <div>
@@ -436,10 +626,12 @@ function openDetailModal(item) {
       <tr><td>ปริมาณน้ำสูงสุด,ระดับน้ำสูงสุด (Max):</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำต่ำสุด,ระดับน้ำต่ำสุด (Min):</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำปัจจุบัน,ระดับน้ำปัจจุบัน (Current):</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
+      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
       <tr><td>คาดการณ์สูบน้ำดิบได้ถึง (Forecast):</td><td><strong>${item.forecast}</strong></td></tr>
       <tr><td>กำลังการผลิต:</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
       <tr><td>ความต้องการใช้น้ำ:</td><td>${item.demand.toLocaleString()} คน</td></tr>
       <tr><td>พิกัดทางภูมิศาสตร์:</td><td>${item.lat}, ${item.lng}</td></tr>
+      ${item.forecastValid ? '' : `<tr><td colspan="2" style="color:#b45309; background:rgba(245,158,11,0.12); border-radius:4px;">⚠️ วันที่คาดการณ์ต้นทาง (ค่าดิบ: ${item.forecastRaw}) ดูผิดปกติ ควรตรวจสอบและแก้ไขในชีตข้อมูล</td></tr>`}
     </table>
   `;
 
