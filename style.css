@@ -440,6 +440,39 @@ body {
   overflow-x: auto;
 }
 
+.table-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.filter-group select {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  background: #fff;
+  cursor: pointer;
+  max-width: 220px;
+}
+
 .table-pagination {
   display: flex;
   align-items: center;

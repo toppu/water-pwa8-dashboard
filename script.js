@@ -12,6 +12,15 @@ let currentTableData = [];
 let currentPage = 1;
 let pageSize = 10; // จำนวน, หรือ 'all'
 
+// สถานะตัวกรองตารางข้อมูล
+let tableFilterState = {
+  search: '',
+  branch: 'all',
+  status: 'all', // all | abundant | normal | warning | critical
+  forecast: 'all', // all | flagged
+  sortBy: null // null | 'name' | 'percent'
+};
+
 // ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
 const FORECAST_MAX_REASONABLE_DAYS = 3650;
 
@@ -72,6 +81,14 @@ function getStatusTheme(percent) {
   } else {
     return { color: '#ef4444', bgHex: '#ef4444', label: '🔴 วิกฤต', badgeClass: 'badge-critical' };
   }
+}
+
+// คีย์ระดับความจุ ใช้กับตัวกรองสถานะในตาราง (ต่างจาก badgeClass ที่ใช้ร่วมกัน 2 ระดับ)
+function getPercentTier(percent) {
+  if (percent > 80) return 'abundant';
+  if (percent >= 51) return 'normal';
+  if (percent >= 30) return 'warning';
+  return 'critical';
 }
 
 // Helper คำนวณสีธีมตามจำนวนวันน้ำดิบคงเหลือ (4 ระดับ)
@@ -202,8 +219,45 @@ function updateLastUpdatedTime() {
 function updateDashboard() {
   updateCards();
   renderMapMarkers();
-  renderTable(waterData);
+  populateBranchFilter();
+  applyTableFilters();
   renderCharts();
+}
+
+// เติมตัวเลือกสาขาในตัวกรองตาราง จากรายชื่อสาขาที่มีอยู่จริงในข้อมูล
+function populateBranchFilter() {
+  const select = document.getElementById('filter-branch');
+  const currentValue = select.value;
+  const branches = [...new Set(waterData.map(d => d.branch))].sort((a, b) => a.localeCompare(b, 'th'));
+
+  select.innerHTML = '<option value="all">ทุกสาขา</option>' +
+    branches.map(b => `<option value="${b}">${b}</option>`).join('');
+
+  if (branches.includes(currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+// รวมตัวกรองค้นหา/สาขา/สถานะ/ข้อมูลผิดปกติ และการเรียงลำดับ แล้ววาดตาราง
+function applyTableFilters() {
+  let filtered = waterData.filter(d => {
+    const matchesSearch = !tableFilterState.search ||
+      d.name.toLowerCase().includes(tableFilterState.search) ||
+      d.branch.toLowerCase().includes(tableFilterState.search);
+    const matchesBranch = tableFilterState.branch === 'all' || d.branch === tableFilterState.branch;
+    const matchesStatus = tableFilterState.status === 'all' || getPercentTier(d.percent) === tableFilterState.status;
+    const matchesForecast = tableFilterState.forecast === 'all' || !d.forecastValid;
+    return matchesSearch && matchesBranch && matchesStatus && matchesForecast;
+  });
+
+  if (tableFilterState.sortBy === 'name') {
+    filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+  } else if (tableFilterState.sortBy === 'percent') {
+    filtered = [...filtered].sort((a, b) => a.percent - b.percent);
+  }
+
+  renderTable(filtered);
+  return filtered;
 }
 
 // Count Up Animation
@@ -515,21 +569,15 @@ function setupEventListeners() {
   });
 
   const handleSearch = () => {
-    const query = document.getElementById('search-input').value.trim().toLowerCase();
-    if (!query) {
-      renderTable(waterData);
-      return;
-    }
+    tableFilterState.search = document.getElementById('search-input').value.trim().toLowerCase();
+    const filtered = applyTableFilters();
 
-    const matched = waterData.filter(d => 
-      d.name.toLowerCase().includes(query) || d.branch.toLowerCase().includes(query)
-    );
-
-    if (matched.length > 0) {
-      renderTable(matched);
-      focusOnMap(matched[0]);
-    } else {
-      alert('ไม่พบข้อมูลตามคำค้นหา');
+    if (tableFilterState.search) {
+      if (filtered.length > 0) {
+        focusOnMap(filtered[0]);
+      } else {
+        alert('ไม่พบข้อมูลตามคำค้นหา');
+      }
     }
   };
 
@@ -539,13 +587,37 @@ function setupEventListeners() {
   });
 
   document.getElementById('sort-name').addEventListener('click', () => {
-    const sorted = [...waterData].sort((a, b) => a.name.localeCompare(b.name, 'th'));
-    renderTable(sorted);
+    tableFilterState.sortBy = 'name';
+    applyTableFilters();
   });
 
   document.getElementById('sort-percent').addEventListener('click', () => {
-    const sorted = [...waterData].sort((a, b) => a.percent - b.percent);
-    renderTable(sorted);
+    tableFilterState.sortBy = 'percent';
+    applyTableFilters();
+  });
+
+  document.getElementById('filter-branch').addEventListener('change', (e) => {
+    tableFilterState.branch = e.target.value;
+    applyTableFilters();
+  });
+
+  document.getElementById('filter-status').addEventListener('change', (e) => {
+    tableFilterState.status = e.target.value;
+    applyTableFilters();
+  });
+
+  document.getElementById('filter-forecast').addEventListener('change', (e) => {
+    tableFilterState.forecast = e.target.value;
+    applyTableFilters();
+  });
+
+  document.getElementById('filter-clear').addEventListener('click', () => {
+    tableFilterState = { search: '', branch: 'all', status: 'all', forecast: 'all', sortBy: null };
+    document.getElementById('search-input').value = '';
+    document.getElementById('filter-branch').value = 'all';
+    document.getElementById('filter-status').value = 'all';
+    document.getElementById('filter-forecast').value = 'all';
+    applyTableFilters();
   });
 
   document.getElementById('page-size-select').addEventListener('change', (e) => {
