@@ -41,6 +41,10 @@ const TABLE_COLUMN_FILTERS = {
     type: 'range',
     getValue: (d) => d.current
   },
+  daysRemaining: {
+    type: 'range',
+    getValue: (d) => (d.forecastValid ? d.daysRemaining : NaN)
+  },
   production: {
     type: 'range',
     getValue: (d) => d.production
@@ -317,6 +321,8 @@ function applyTableFilters() {
 
       if (config.type === 'range') {
         const value = config.getValue(d);
+        const filterActive = filterValue.min !== null || filterValue.max !== null;
+        if (filterActive && isNaN(value)) return false;
         if (filterValue.min !== null && value < filterValue.min) return false;
         if (filterValue.max !== null && value > filterValue.max) return false;
         return true;
@@ -645,7 +651,7 @@ function renderTablePage() {
   const total = currentTableData.length;
 
   if (total === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center">ไม่พบข้อมูล</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center">ไม่พบข้อมูล</td></tr>';
     renderPaginationControls(0, 0, 0, 1);
     return;
   }
@@ -664,6 +670,7 @@ function renderTablePage() {
 
     tr.innerHTML = `
       <td>${startIdx + index + 1}</td>
+      <td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
       <td><strong>${item.name}</strong></td>
       <td>${item.branch}</td>
       <td><strong>${item.percent}%</strong></td>
