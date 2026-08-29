@@ -164,23 +164,25 @@ function getPercentTier(percent) {
 }
 
 // Helper คำนวณสีธีมตามจำนวนวันน้ำดิบคงเหลือ (4 ระดับ)
+// label = คำอธิบายช่วงวัน (ใช้กับ legend/popup ที่ต้องอธิบายเกณฑ์)
+// shortLabel = คำสั้นบอกสถานะ (ใช้กับ badge ที่มีสีบอกอยู่แล้ว ไม่ต้องพิมพ์ช่วงวันซ้ำ)
 function getStatusThemeByDays(days) {
   if (days === null || days === undefined || isNaN(days)) {
-    return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚪ ไม่ระบุ', badgeClass: 'badge-normal' };
+    return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚪ ไม่ระบุ', shortLabel: '⚪ ไม่ระบุ', badgeClass: 'badge-normal' };
   } else if (days > 360) {
-    return { color: '#0284c7', bgHex: '#0284c7', label: '🔵 มากกว่า 360 วัน', badgeClass: 'badge-normal' };
+    return { color: '#0284c7', bgHex: '#0284c7', label: '🔵 มากกว่า 360 วัน', shortLabel: '🔵 อุดมสมบูรณ์', badgeClass: 'badge-normal' };
   } else if (days >= 211) {
-    return { color: '#10b981', bgHex: '#10b981', label: '🟢 211-360 วัน', badgeClass: 'badge-normal' };
+    return { color: '#10b981', bgHex: '#10b981', label: '🟢 211-360 วัน', shortLabel: '🟢 ปกติ', badgeClass: 'badge-normal' };
   } else if (days >= 121) {
-    return { color: '#f59e0b', bgHex: '#f59e0b', label: '🟡 121-210 วัน', badgeClass: 'badge-warning' };
+    return { color: '#f59e0b', bgHex: '#f59e0b', label: '🟡 121-210 วัน', shortLabel: '🟡 เฝ้าระวัง', badgeClass: 'badge-warning' };
   } else {
-    return { color: '#ef4444', bgHex: '#ef4444', label: '🔴 น้อยกว่า 120 วัน', badgeClass: 'badge-critical' };
+    return { color: '#ef4444', bgHex: '#ef4444', label: '🔴 น้อยกว่า 120 วัน', shortLabel: '🔴 วิกฤต', badgeClass: 'badge-critical' };
   }
 }
 
 // ธีมสำหรับจุดที่ข้อมูลวันที่คาดการณ์จากชีตต้นทางน่าจะผิดปกติ
 function getFlaggedTheme() {
-  return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚠️ ข้อมูลวันที่คาดการณ์ผิดปกติ', badgeClass: 'badge-flagged' };
+  return { color: '#94a3b8', bgHex: '#94a3b8', label: '⚠️ ข้อมูลวันที่คาดการณ์ผิดปกติ', shortLabel: '⚠️ ผิดปกติ', badgeClass: 'badge-flagged' };
 }
 
 // เลือกธีมสีสำหรับ Marker บนแผนที่ ตามโหมดที่ผู้ใช้เลือก (mapColorMode)
@@ -679,7 +681,7 @@ function renderTablePage() {
       <td>${item.production.toLocaleString()}</td>
       <td>${item.demand.toLocaleString()}</td>
       <td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
-      <td><span class="badge ${status.badgeClass}">${status.label}</span></td>
+      <td><span class="badge ${status.badgeClass}">${status.shortLabel}</span></td>
     `;
 
     tr.addEventListener('click', () => {
@@ -1086,7 +1088,7 @@ function openListModal(title, items) {
           <br><small style="color:#64748b;">${item.branch}</small>
         </div>
         <div>
-          <span class="badge ${status.badgeClass}">${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</span>
+          <span class="badge ${status.badgeClass}">${status.shortLabel}</span>
         </div>
       `;
       div.addEventListener('click', () => {
@@ -1110,7 +1112,7 @@ function openDetailModal(item) {
     <table class="detail-table">
       <tr><td>ชื่อแหล่งน้ำ:</td><td><strong>${item.name}</strong></td></tr>
       <tr><td>สาขาที่ให้บริการ:</td><td>${item.branch}</td></tr>
-      <tr><td>สถานะ (ปริมาณน้ำดิบคงเหลือ):</td><td><span class="badge ${status.badgeClass}">${status.label}</span></td></tr>
+      <tr><td>สถานะ (ปริมาณน้ำดิบคงเหลือ):</td><td><span class="badge ${status.badgeClass}">${status.shortLabel}</span></td></tr>
       <tr><td>% ความจุ:</td><td>${item.percent}%</td></tr>
       <tr><td>ปริมาณน้ำสูงสุด,ระดับน้ำสูงสุด (Max):</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำต่ำสุด,ระดับน้ำต่ำสุด (Min):</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
