@@ -347,10 +347,17 @@ function updateCards() {
   const total = waterData.length;
   const critical = waterData.filter(d => d.percent < 30).length;
   const flagged = waterData.filter(d => !d.forecastValid).length;
+  const watchBranches = new Set(getWatchTierItems().map(d => d.branch)).size;
 
   animateCount('total-count', total);
   animateCount('critical-count', critical);
   animateCount('flagged-count', flagged);
+  animateCount('watch-branches-count', watchBranches);
+}
+
+// แหล่งน้ำที่อยู่ในเกณฑ์เฝ้าระวังตามปริมาณน้ำดิบคงเหลือ (121-210 วัน) นับเฉพาะข้อมูลคาดการณ์ที่ไม่ผิดปกติ
+function getWatchTierItems() {
+  return waterData.filter(d => d.forecastValid && d.daysRemaining >= 121 && d.daysRemaining <= 210);
 }
 
 // ==========================================
@@ -775,6 +782,10 @@ function renderDroughtOverviewCharts() {
 function setupEventListeners() {
   document.getElementById('card-total').addEventListener('click', () => {
     openListModal('รายการแหล่งน้ำทั้งหมด', waterData);
+  });
+
+  document.getElementById('card-watch-branches').addEventListener('click', () => {
+    openListModal('รายการแหล่งน้ำในสาขาเฝ้าระวัง (ปริมาณน้ำดิบคงเหลือ 121-210 วัน)', getWatchTierItems());
   });
 
   document.getElementById('card-critical').addEventListener('click', () => {

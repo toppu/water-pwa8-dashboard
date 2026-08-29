@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829j">
+  <link rel="stylesheet" href="style.css?v=20260829k">
 </head>
 <body>
 
@@ -85,6 +85,17 @@
             <h3>จำนวนแหล่งน้ำทั้งหมด</h3>
             <div class="card-value" id="total-count">0</div>
             <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> คลิกเพื่อดูรายการทั้งหมด</p>
+          </div>
+        </div>
+
+        <div class="card card-clickable" id="card-watch-branches">
+          <div class="card-icon bg-amber">
+            <i class="fa-solid fa-droplet-slash"></i>
+          </div>
+          <div class="card-info">
+            <h3>สาขาเฝ้าระวัง</h3>
+            <div class="card-value text-amber" id="watch-branches-count">0</div>
+            <p class="card-subtext"><i class="fa-solid fa-arrow-pointer"></i> เกณฑ์: ปริมาณน้ำดิบคงเหลือ 121-210 วัน</p>
           </div>
         </div>
 
@@ -402,6 +413,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829j"></script>
+  <script src="script.js?v=20260829k"></script>
 </body>
 </html>
