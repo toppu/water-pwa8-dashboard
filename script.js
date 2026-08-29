@@ -670,7 +670,6 @@ function renderTablePage() {
 
     tr.innerHTML = `
       <td>${startIdx + index + 1}</td>
-      <td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
       <td><strong>${item.name}</strong></td>
       <td>${item.branch}</td>
       <td><strong>${item.percent}%</strong></td>
@@ -678,6 +677,7 @@ function renderTablePage() {
       <td><strong>${item.forecast}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
       <td>${item.production.toLocaleString()}</td>
       <td>${item.demand.toLocaleString()}</td>
+      <td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong>${item.forecastValid ? '' : ' <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;" title="ข้อมูลวันที่คาดการณ์นี้อาจไม่ถูกต้อง"></i>'}</td>
       <td><span class="badge ${status.badgeClass}">${status.label}</span></td>
     `;
 
