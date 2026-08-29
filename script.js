@@ -384,7 +384,12 @@ function renderCharts() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } }
+        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } },
+        tooltip: {
+          callbacks: {
+            title: () => ''
+          }
+        }
       }
     }
   });
@@ -408,6 +413,7 @@ function renderDonutChart(canvasId, labels, data, colors) {
         legend: { position: 'bottom', labels: { font: { family: 'Sarabun' }, boxWidth: 12 } },
         tooltip: {
           callbacks: {
+            title: () => '',
             label: (ctx) => {
               const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
               const pct = ((ctx.parsed / total) * 100).toFixed(1);
