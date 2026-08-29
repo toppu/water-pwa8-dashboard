@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829f">
+  <link rel="stylesheet" href="style.css?v=20260829g">
 </head>
 <body>
 
@@ -213,8 +213,38 @@
                       </div>
                     </div>
                   </th>
-                  <th>% ความจุ</th>
-                  <th>น้ำปัจจุบัน (ลบ.ม.,ม.)</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>% ความจุ</span>
+                      <button class="th-filter-btn" data-column="percent" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel th-filter-panel-range" data-panel="percent">
+                        <div class="th-filter-range">
+                          <label>ตั้งแต่ <input type="number" class="th-filter-min" placeholder="ต่ำสุด"></label>
+                          <label>ถึง <input type="number" class="th-filter-max" placeholder="สูงสุด"></label>
+                        </div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-filter">
+                      <span>น้ำปัจจุบัน (ลบ.ม.,ม.)</span>
+                      <button class="th-filter-btn" data-column="current" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel th-filter-panel-range" data-panel="current">
+                        <div class="th-filter-range">
+                          <label>ตั้งแต่ <input type="number" class="th-filter-min" placeholder="ต่ำสุด"></label>
+                          <label>ถึง <input type="number" class="th-filter-max" placeholder="สูงสุด"></label>
+                        </div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                   <th>
                     <div class="th-filter">
                       <span>คาดการณ์ระยะเวลาที่สามารถสูบน้ำดิบได้ถึง</span>
@@ -229,8 +259,38 @@
                       </div>
                     </div>
                   </th>
-                  <th>กำลังผลิต (ลบ.ม./ชม.)</th>
-                  <th>ความต้องการใช้น้ำ (คน)</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>กำลังผลิต (ลบ.ม./ชม.)</span>
+                      <button class="th-filter-btn" data-column="production" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel th-filter-panel-range" data-panel="production">
+                        <div class="th-filter-range">
+                          <label>ตั้งแต่ <input type="number" class="th-filter-min" placeholder="ต่ำสุด"></label>
+                          <label>ถึง <input type="number" class="th-filter-max" placeholder="สูงสุด"></label>
+                        </div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-filter">
+                      <span>ความต้องการใช้น้ำ (คน)</span>
+                      <button class="th-filter-btn" data-column="demand" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel th-filter-panel-range" data-panel="demand">
+                        <div class="th-filter-range">
+                          <label>ตั้งแต่ <input type="number" class="th-filter-min" placeholder="ต่ำสุด"></label>
+                          <label>ถึง <input type="number" class="th-filter-max" placeholder="สูงสุด"></label>
+                        </div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                   <th>
                     <div class="th-filter">
                       <span>สถานะ</span>
@@ -331,6 +391,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829f"></script>
+  <script src="script.js?v=20260829g"></script>
 </body>
 </html>

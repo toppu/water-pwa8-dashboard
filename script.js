@@ -12,33 +12,41 @@ let currentTableData = [];
 let currentPage = 1;
 let pageSize = 10; // จำนวน, หรือ 'all'
 
-// สถานะตัวกรองตารางข้อมูล (columnFilters เก็บ "ค่าที่ถูกตัดออก" ของแต่ละคอลัมน์ ว่างหมายถึงไม่กรอง)
-let tableFilterState = {
-  search: '',
-  sortBy: null, // null | 'name' | 'percent'
-  columnFilters: {
-    name: new Set(),
-    branch: new Set(),
-    status: new Set(),
-    forecast: new Set()
-  }
-};
-
 // นิยามตัวเลือกของตัวกรองแบบ Excel ในแต่ละคอลัมน์
+// type 'checkbox' = เลือกจากรายการค่าที่มีอยู่, type 'range' = กรองด้วยช่วงตัวเลข (ต่ำสุด/สูงสุด)
 const TABLE_COLUMN_FILTERS = {
   name: {
+    type: 'checkbox',
     getValue: (d) => d.name,
     getOptions: () => [...new Set(waterData.map((d) => d.name))]
       .sort((a, b) => a.localeCompare(b, 'th'))
       .map((n) => ({ value: n, label: n }))
   },
   branch: {
+    type: 'checkbox',
     getValue: (d) => d.branch,
     getOptions: () => [...new Set(waterData.map((d) => d.branch))]
       .sort((a, b) => a.localeCompare(b, 'th'))
       .map((b) => ({ value: b, label: b }))
   },
+  percent: {
+    type: 'range',
+    getValue: (d) => d.percent
+  },
+  current: {
+    type: 'range',
+    getValue: (d) => d.current
+  },
+  production: {
+    type: 'range',
+    getValue: (d) => d.production
+  },
+  demand: {
+    type: 'range',
+    getValue: (d) => d.demand
+  },
   status: {
+    type: 'checkbox',
     getValue: (d) => getPercentTier(d.percent),
     getOptions: () => [
       { value: 'abundant', label: 'อุดมสมบูรณ์ (มากกว่า 80%)' },
@@ -48,12 +56,33 @@ const TABLE_COLUMN_FILTERS = {
     ]
   },
   forecast: {
+    type: 'checkbox',
     getValue: (d) => (d.forecastValid ? 'valid' : 'flagged'),
     getOptions: () => [
       { value: 'valid', label: 'ปกติ' },
       { value: 'flagged', label: 'ผิดปกติ' }
     ]
   }
+};
+
+// ค่าตัวกรองเริ่มต้นของคอลัมน์หนึ่ง ๆ ตามชนิดตัวกรอง
+function getDefaultColumnFilterValue(column) {
+  return TABLE_COLUMN_FILTERS[column].type === 'range' ? { min: null, max: null } : new Set();
+}
+
+function buildDefaultColumnFilters() {
+  const filters = {};
+  Object.keys(TABLE_COLUMN_FILTERS).forEach((column) => {
+    filters[column] = getDefaultColumnFilterValue(column);
+  });
+  return filters;
+}
+
+// สถานะตัวกรองตารางข้อมูล (columnFilters: checkbox เก็บ "ค่าที่ถูกตัดออก", range เก็บ {min,max}; ว่าง/null หมายถึงไม่กรอง)
+let tableFilterState = {
+  search: '',
+  sortBy: null, // null | 'name' | 'percent'
+  columnFilters: buildDefaultColumnFilters()
 };
 
 // ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
@@ -267,9 +296,18 @@ function applyTableFilters() {
       d.branch.toLowerCase().includes(tableFilterState.search);
 
     const matchesColumns = Object.keys(TABLE_COLUMN_FILTERS).every((column) => {
-      const excluded = tableFilterState.columnFilters[column];
-      if (excluded.size === 0) return true;
-      return !excluded.has(TABLE_COLUMN_FILTERS[column].getValue(d));
+      const config = TABLE_COLUMN_FILTERS[column];
+      const filterValue = tableFilterState.columnFilters[column];
+
+      if (config.type === 'range') {
+        const value = config.getValue(d);
+        if (filterValue.min !== null && value < filterValue.min) return false;
+        if (filterValue.max !== null && value > filterValue.max) return false;
+        return true;
+      }
+
+      if (filterValue.size === 0) return true;
+      return !filterValue.has(config.getValue(d));
     });
 
     return matchesSearch && matchesColumns;
@@ -408,18 +446,37 @@ function focusOnMap(item) {
 // 3b. ตัวกรองคอลัมน์แบบ Excel ในหัวตาราง
 // ==========================================
 
-// เติมรายการตัวเลือกในแผงตัวกรองของคอลัมน์ที่ระบุ (checkbox ทั้งหมดจะถูกติ๊กตามค่าที่ไม่ได้ถูกตัดออก)
+// เติมข้อมูลในแผงตัวกรองของคอลัมน์ที่ระบุ: checkbox ทั้งหมดจะถูกติ๊กตามค่าที่ไม่ได้ถูกตัดออก
+// ส่วน range จะเติมค่าต่ำสุด/สูงสุดปัจจุบัน และแสดงช่วงข้อมูลจริงเป็น placeholder
 function populateColumnFilterPanel(column) {
   const panel = document.querySelector(`.th-filter-panel[data-panel="${column}"]`);
   if (!panel) return;
 
+  const config = TABLE_COLUMN_FILTERS[column];
+  const filterValue = tableFilterState.columnFilters[column];
+
+  if (config.type === 'range') {
+    const minInput = panel.querySelector('.th-filter-min');
+    const maxInput = panel.querySelector('.th-filter-max');
+    minInput.value = filterValue.min ?? '';
+    maxInput.value = filterValue.max ?? '';
+
+    const values = waterData.map(config.getValue).filter((v) => !isNaN(v));
+    if (values.length > 0) {
+      minInput.placeholder = `ต่ำสุด (${Math.min(...values).toLocaleString()})`;
+      maxInput.placeholder = `สูงสุด (${Math.max(...values).toLocaleString()})`;
+    }
+
+    updateColumnFilterButtonState(column);
+    return;
+  }
+
   const optionsContainer = panel.querySelector('.th-filter-options');
-  const options = TABLE_COLUMN_FILTERS[column].getOptions();
-  const excluded = tableFilterState.columnFilters[column];
+  const options = config.getOptions();
 
   optionsContainer.innerHTML = options.map(opt => `
     <label class="th-filter-option">
-      <input type="checkbox" value="${opt.value}" ${excluded.has(opt.value) ? '' : 'checked'}>
+      <input type="checkbox" value="${opt.value}" ${filterValue.has(opt.value) ? '' : 'checked'}>
       <span>${opt.label}</span>
     </label>
   `).join('');
@@ -437,7 +494,12 @@ function updateSelectAllCheckbox(panel) {
 function updateColumnFilterButtonState(column) {
   const btn = document.querySelector(`.th-filter-btn[data-column="${column}"]`);
   if (!btn) return;
-  btn.classList.toggle('active', tableFilterState.columnFilters[column].size > 0);
+  const config = TABLE_COLUMN_FILTERS[column];
+  const filterValue = tableFilterState.columnFilters[column];
+  const isActive = config.type === 'range'
+    ? (filterValue.min !== null || filterValue.max !== null)
+    : filterValue.size > 0;
+  btn.classList.toggle('active', isActive);
 }
 
 function closeAllFilterPanels() {
@@ -461,43 +523,62 @@ function setupColumnFilters() {
 
   document.querySelectorAll('.th-filter-panel').forEach(panel => {
     const column = panel.dataset.panel;
+    const config = TABLE_COLUMN_FILTERS[column];
 
     panel.addEventListener('click', (e) => e.stopPropagation());
 
-    const searchInput = panel.querySelector('.th-filter-search');
-    if (searchInput) {
-      searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim().toLowerCase();
-        panel.querySelectorAll('.th-filter-option').forEach(label => {
-          const text = label.querySelector('span').innerText.toLowerCase();
-          label.style.display = text.includes(query) ? '' : 'none';
+    if (config.type === 'range') {
+      panel.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') panel.querySelector('.th-filter-apply').click();
         });
+      });
+    } else {
+      const searchInput = panel.querySelector('.th-filter-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          const query = searchInput.value.trim().toLowerCase();
+          panel.querySelectorAll('.th-filter-option').forEach(label => {
+            const text = label.querySelector('span').innerText.toLowerCase();
+            label.style.display = text.includes(query) ? '' : 'none';
+          });
+        });
+      }
+
+      panel.querySelector('.th-filter-all input').addEventListener('change', (e) => {
+        panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
+          cb.checked = e.target.checked;
+        });
+      });
+
+      panel.querySelector('.th-filter-options').addEventListener('change', (e) => {
+        if (e.target.matches('input[type="checkbox"]')) updateSelectAllCheckbox(panel);
       });
     }
 
-    panel.querySelector('.th-filter-all input').addEventListener('change', (e) => {
-      panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
-        cb.checked = e.target.checked;
-      });
-    });
-
-    panel.querySelector('.th-filter-options').addEventListener('change', (e) => {
-      if (e.target.matches('input[type="checkbox"]')) updateSelectAllCheckbox(panel);
-    });
-
     panel.querySelector('.th-filter-apply').addEventListener('click', () => {
-      const excluded = new Set();
-      panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
-        if (!cb.checked) excluded.add(cb.value);
-      });
-      tableFilterState.columnFilters[column] = excluded;
+      if (config.type === 'range') {
+        const minVal = panel.querySelector('.th-filter-min').value;
+        const maxVal = panel.querySelector('.th-filter-max').value;
+        tableFilterState.columnFilters[column] = {
+          min: minVal === '' ? null : parseFloat(minVal),
+          max: maxVal === '' ? null : parseFloat(maxVal)
+        };
+      } else {
+        const excluded = new Set();
+        panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
+          if (!cb.checked) excluded.add(cb.value);
+        });
+        tableFilterState.columnFilters[column] = excluded;
+      }
       updateColumnFilterButtonState(column);
       closeAllFilterPanels();
       applyTableFilters();
     });
 
     panel.querySelector('.th-filter-clear').addEventListener('click', () => {
-      tableFilterState.columnFilters[column] = new Set();
+      tableFilterState.columnFilters[column] = getDefaultColumnFilterValue(column);
+      populateColumnFilterPanel(column);
       updateColumnFilterButtonState(column);
       closeAllFilterPanels();
       applyTableFilters();
@@ -730,10 +811,13 @@ function setupEventListeners() {
     tableFilterState = {
       search: '',
       sortBy: null,
-      columnFilters: { name: new Set(), branch: new Set(), status: new Set(), forecast: new Set() }
+      columnFilters: buildDefaultColumnFilters()
     };
     document.getElementById('search-input').value = '';
-    Object.keys(TABLE_COLUMN_FILTERS).forEach(populateColumnFilterPanel);
+    Object.keys(TABLE_COLUMN_FILTERS).forEach((column) => {
+      populateColumnFilterPanel(column);
+      updateColumnFilterButtonState(column);
+    });
     closeAllFilterPanels();
     applyTableFilters();
   });
