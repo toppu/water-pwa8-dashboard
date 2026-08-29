@@ -435,7 +435,7 @@ function renderMapMarkers() {
 function focusOnMap(item) {
   if (item && item._marker) {
     if (document.getElementById('map-section').classList.contains('map-hidden')) {
-      setMapSize('large');
+      setMapSize('medium');
     }
     document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
     map.setView([item.lat, item.lng], 13);
@@ -888,7 +888,7 @@ function toggleMapFullscreen() {
 
   // ถ้าแผนที่ถูกซ่อนอยู่ ให้แสดงก่อนเข้าโหมดเต็มจอ
   if (section.classList.contains('map-hidden')) {
-    setMapSize('large');
+    setMapSize('medium');
   }
 
   const isFullscreen = section.classList.toggle('map-fullscreen');

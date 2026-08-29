@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829h">
+  <link rel="stylesheet" href="style.css?v=20260829i">
 </head>
 <body>
 
@@ -124,8 +124,8 @@
               <select id="map-size-select">
                 <option value="hidden">ซ่อนแผนที่</option>
                 <option value="small">เล็ก</option>
-                <option value="medium">กลาง</option>
-                <option value="large" selected>ใหญ่ (ค่าเริ่มต้น)</option>
+                <option value="medium" selected>กลาง (ค่าเริ่มต้น)</option>
+                <option value="large">ใหญ่</option>
               </select>
             </div>
             <button class="btn-sort" id="map-fullscreen-btn" title="ขยายแผนที่เต็มจอ">
@@ -133,7 +133,7 @@
             </button>
           </div>
         </div>
-        <div class="map-card map-size-large" id="map-card">
+        <div class="map-card map-size-medium" id="map-card">
           <div id="map"></div>
         </div>
         <div class="map-legend" id="map-legend"></div>
@@ -401,6 +401,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829h"></script>
+  <script src="script.js?v=20260829i"></script>
 </body>
 </html>
