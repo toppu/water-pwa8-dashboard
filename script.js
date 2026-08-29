@@ -12,13 +12,41 @@ let currentTableData = [];
 let currentPage = 1;
 let pageSize = 10; // จำนวน, หรือ 'all'
 
-// สถานะตัวกรองตารางข้อมูล
+// สถานะตัวกรองตารางข้อมูล (columnFilters เก็บ "ค่าที่ถูกตัดออก" ของแต่ละคอลัมน์ ว่างหมายถึงไม่กรอง)
 let tableFilterState = {
   search: '',
-  branch: 'all',
-  status: 'all', // all | abundant | normal | warning | critical
-  forecast: 'all', // all | flagged
-  sortBy: null // null | 'name' | 'percent'
+  sortBy: null, // null | 'name' | 'percent'
+  columnFilters: {
+    branch: new Set(),
+    status: new Set(),
+    forecast: new Set()
+  }
+};
+
+// นิยามตัวเลือกของตัวกรองแบบ Excel ในแต่ละคอลัมน์
+const TABLE_COLUMN_FILTERS = {
+  branch: {
+    getValue: (d) => d.branch,
+    getOptions: () => [...new Set(waterData.map((d) => d.branch))]
+      .sort((a, b) => a.localeCompare(b, 'th'))
+      .map((b) => ({ value: b, label: b }))
+  },
+  status: {
+    getValue: (d) => getPercentTier(d.percent),
+    getOptions: () => [
+      { value: 'abundant', label: 'อุดมสมบูรณ์ (มากกว่า 80%)' },
+      { value: 'normal', label: 'ปกติ (51% - 80%)' },
+      { value: 'warning', label: 'เฝ้าระวัง (30% - 50%)' },
+      { value: 'critical', label: 'วิกฤต (น้อยกว่า 30%)' }
+    ]
+  },
+  forecast: {
+    getValue: (d) => (d.forecastValid ? 'valid' : 'flagged'),
+    getOptions: () => [
+      { value: 'valid', label: 'ปกติ' },
+      { value: 'flagged', label: 'ผิดปกติ' }
+    ]
+  }
 };
 
 // ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
@@ -219,35 +247,25 @@ function updateLastUpdatedTime() {
 function updateDashboard() {
   updateCards();
   renderMapMarkers();
-  populateBranchFilter();
+  Object.keys(TABLE_COLUMN_FILTERS).forEach(populateColumnFilterPanel);
   applyTableFilters();
   renderCharts();
 }
 
-// เติมตัวเลือกสาขาในตัวกรองตาราง จากรายชื่อสาขาที่มีอยู่จริงในข้อมูล
-function populateBranchFilter() {
-  const select = document.getElementById('filter-branch');
-  const currentValue = select.value;
-  const branches = [...new Set(waterData.map(d => d.branch))].sort((a, b) => a.localeCompare(b, 'th'));
-
-  select.innerHTML = '<option value="all">ทุกสาขา</option>' +
-    branches.map(b => `<option value="${b}">${b}</option>`).join('');
-
-  if (branches.includes(currentValue)) {
-    select.value = currentValue;
-  }
-}
-
-// รวมตัวกรองค้นหา/สาขา/สถานะ/ข้อมูลผิดปกติ และการเรียงลำดับ แล้ววาดตาราง
+// รวมตัวกรองค้นหา/คอลัมน์ (สาขา/สถานะ/ข้อมูลผิดปกติ) และการเรียงลำดับ แล้ววาดตาราง
 function applyTableFilters() {
   let filtered = waterData.filter(d => {
     const matchesSearch = !tableFilterState.search ||
       d.name.toLowerCase().includes(tableFilterState.search) ||
       d.branch.toLowerCase().includes(tableFilterState.search);
-    const matchesBranch = tableFilterState.branch === 'all' || d.branch === tableFilterState.branch;
-    const matchesStatus = tableFilterState.status === 'all' || getPercentTier(d.percent) === tableFilterState.status;
-    const matchesForecast = tableFilterState.forecast === 'all' || !d.forecastValid;
-    return matchesSearch && matchesBranch && matchesStatus && matchesForecast;
+
+    const matchesColumns = Object.keys(TABLE_COLUMN_FILTERS).every((column) => {
+      const excluded = tableFilterState.columnFilters[column];
+      if (excluded.size === 0) return true;
+      return !excluded.has(TABLE_COLUMN_FILTERS[column].getValue(d));
+    });
+
+    return matchesSearch && matchesColumns;
   });
 
   if (tableFilterState.sortBy === 'name') {
@@ -377,6 +395,109 @@ function focusOnMap(item) {
       item._marker.openPopup();
     }, 400);
   }
+}
+
+// ==========================================
+// 3b. ตัวกรองคอลัมน์แบบ Excel ในหัวตาราง
+// ==========================================
+
+// เติมรายการตัวเลือกในแผงตัวกรองของคอลัมน์ที่ระบุ (checkbox ทั้งหมดจะถูกติ๊กตามค่าที่ไม่ได้ถูกตัดออก)
+function populateColumnFilterPanel(column) {
+  const panel = document.querySelector(`.th-filter-panel[data-panel="${column}"]`);
+  if (!panel) return;
+
+  const optionsContainer = panel.querySelector('.th-filter-options');
+  const options = TABLE_COLUMN_FILTERS[column].getOptions();
+  const excluded = tableFilterState.columnFilters[column];
+
+  optionsContainer.innerHTML = options.map(opt => `
+    <label class="th-filter-option">
+      <input type="checkbox" value="${opt.value}" ${excluded.has(opt.value) ? '' : 'checked'}>
+      <span>${opt.label}</span>
+    </label>
+  `).join('');
+
+  updateSelectAllCheckbox(panel);
+  updateColumnFilterButtonState(column);
+}
+
+function updateSelectAllCheckbox(panel) {
+  const checkboxes = [...panel.querySelectorAll('.th-filter-options input[type="checkbox"]')];
+  const allCheckbox = panel.querySelector('.th-filter-all input');
+  allCheckbox.checked = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+}
+
+function updateColumnFilterButtonState(column) {
+  const btn = document.querySelector(`.th-filter-btn[data-column="${column}"]`);
+  if (!btn) return;
+  btn.classList.toggle('active', tableFilterState.columnFilters[column].size > 0);
+}
+
+function closeAllFilterPanels() {
+  document.querySelectorAll('.th-filter-panel.open').forEach(p => p.classList.remove('open'));
+}
+
+function setupColumnFilters() {
+  document.querySelectorAll('.th-filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const column = btn.dataset.column;
+      const panel = document.querySelector(`.th-filter-panel[data-panel="${column}"]`);
+      const isOpen = panel.classList.contains('open');
+      closeAllFilterPanels();
+      if (!isOpen) {
+        populateColumnFilterPanel(column);
+        panel.classList.add('open');
+      }
+    });
+  });
+
+  document.querySelectorAll('.th-filter-panel').forEach(panel => {
+    const column = panel.dataset.panel;
+
+    panel.addEventListener('click', (e) => e.stopPropagation());
+
+    const searchInput = panel.querySelector('.th-filter-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        panel.querySelectorAll('.th-filter-option').forEach(label => {
+          const text = label.querySelector('span').innerText.toLowerCase();
+          label.style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+    }
+
+    panel.querySelector('.th-filter-all input').addEventListener('change', (e) => {
+      panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
+        cb.checked = e.target.checked;
+      });
+    });
+
+    panel.querySelector('.th-filter-options').addEventListener('change', (e) => {
+      if (e.target.matches('input[type="checkbox"]')) updateSelectAllCheckbox(panel);
+    });
+
+    panel.querySelector('.th-filter-apply').addEventListener('click', () => {
+      const excluded = new Set();
+      panel.querySelectorAll('.th-filter-options input[type="checkbox"]').forEach(cb => {
+        if (!cb.checked) excluded.add(cb.value);
+      });
+      tableFilterState.columnFilters[column] = excluded;
+      updateColumnFilterButtonState(column);
+      closeAllFilterPanels();
+      applyTableFilters();
+    });
+
+    panel.querySelector('.th-filter-clear').addEventListener('click', () => {
+      tableFilterState.columnFilters[column] = new Set();
+      updateColumnFilterButtonState(column);
+      closeAllFilterPanels();
+      applyTableFilters();
+    });
+  });
+
+  document.addEventListener('click', closeAllFilterPanels);
 }
 
 // ==========================================
@@ -596,27 +717,17 @@ function setupEventListeners() {
     applyTableFilters();
   });
 
-  document.getElementById('filter-branch').addEventListener('change', (e) => {
-    tableFilterState.branch = e.target.value;
-    applyTableFilters();
-  });
+  setupColumnFilters();
 
-  document.getElementById('filter-status').addEventListener('change', (e) => {
-    tableFilterState.status = e.target.value;
-    applyTableFilters();
-  });
-
-  document.getElementById('filter-forecast').addEventListener('change', (e) => {
-    tableFilterState.forecast = e.target.value;
-    applyTableFilters();
-  });
-
-  document.getElementById('filter-clear').addEventListener('click', () => {
-    tableFilterState = { search: '', branch: 'all', status: 'all', forecast: 'all', sortBy: null };
+  document.getElementById('filter-clear-all').addEventListener('click', () => {
+    tableFilterState = {
+      search: '',
+      sortBy: null,
+      columnFilters: { branch: new Set(), status: new Set(), forecast: new Set() }
+    };
     document.getElementById('search-input').value = '';
-    document.getElementById('filter-branch').value = 'all';
-    document.getElementById('filter-status').value = 'all';
-    document.getElementById('filter-forecast').value = 'all';
+    Object.keys(TABLE_COLUMN_FILTERS).forEach(populateColumnFilterPanel);
+    closeAllFilterPanels();
     applyTableFilters();
   });
 

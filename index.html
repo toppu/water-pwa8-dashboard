@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829d">
+  <link rel="stylesheet" href="style.css?v=20260829e">
 </head>
 <body>
 
@@ -174,33 +174,8 @@
           <div class="table-actions">
             <button class="btn-sort" id="sort-name"><i class="fa-solid fa-sort-alpha-down"></i> เรียงตามชื่อ</button>
             <button class="btn-sort" id="sort-percent"><i class="fa-solid fa-sort-numeric-down-alt"></i> เรียงตาม % น้ำ</button>
+            <button class="btn-sort" id="filter-clear-all"><i class="fa-solid fa-filter-circle-xmark"></i> ล้างตัวกรองทั้งหมด</button>
           </div>
-        </div>
-        <div class="table-filters">
-          <div class="filter-group">
-            <label for="filter-branch">สาขา</label>
-            <select id="filter-branch">
-              <option value="all">ทุกสาขา</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-status">สถานะ</label>
-            <select id="filter-status">
-              <option value="all">ทุกสถานะ</option>
-              <option value="abundant">อุดมสมบูรณ์ (มากกว่า 80%)</option>
-              <option value="normal">ปกติ (51% - 80%)</option>
-              <option value="warning">เฝ้าระวัง (30% - 50%)</option>
-              <option value="critical">วิกฤต (น้อยกว่า 30%)</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-forecast">ข้อมูลคาดการณ์</label>
-            <select id="filter-forecast">
-              <option value="all">ทั้งหมด</option>
-              <option value="flagged">เฉพาะข้อมูลผิดปกติ</option>
-            </select>
-          </div>
-          <button class="btn-sort" id="filter-clear"><i class="fa-solid fa-filter-circle-xmark"></i> ล้างตัวกรอง</button>
         </div>
         <div class="table-card">
           <div class="table-responsive">
@@ -209,13 +184,53 @@
                 <tr>
                   <th>ลำดับ</th>
                   <th>ชื่อแหล่งน้ำ</th>
-                  <th>สาขา</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>สาขา</span>
+                      <button class="th-filter-btn" data-column="branch" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel" data-panel="branch">
+                        <input type="text" class="th-filter-search" placeholder="ค้นหาสาขา...">
+                        <label class="th-filter-all"><input type="checkbox" checked> เลือกทั้งหมด</label>
+                        <div class="th-filter-options"></div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                   <th>% ความจุ</th>
                   <th>น้ำปัจจุบัน (ลบ.ม.,ม.)</th>
-                  <th>คาดการณ์ระยะเวลาที่สามารถสูบน้ำดิบได้ถึง</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>คาดการณ์ระยะเวลาที่สามารถสูบน้ำดิบได้ถึง</span>
+                      <button class="th-filter-btn" data-column="forecast" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel" data-panel="forecast">
+                        <label class="th-filter-all"><input type="checkbox" checked> เลือกทั้งหมด</label>
+                        <div class="th-filter-options"></div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                   <th>กำลังผลิต (ลบ.ม./ชม.)</th>
                   <th>ความต้องการใช้น้ำ (คน)</th>
-                  <th>สถานะ</th>
+                  <th>
+                    <div class="th-filter">
+                      <span>สถานะ</span>
+                      <button class="th-filter-btn" data-column="status" title="กรองข้อมูล" type="button"><i class="fa-solid fa-filter"></i></button>
+                      <div class="th-filter-panel th-filter-panel-right" data-panel="status">
+                        <label class="th-filter-all"><input type="checkbox" checked> เลือกทั้งหมด</label>
+                        <div class="th-filter-options"></div>
+                        <div class="th-filter-actions">
+                          <button type="button" class="th-filter-clear">ล้าง</button>
+                          <button type="button" class="th-filter-apply">ตกลง</button>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody id="table-body">
@@ -302,6 +317,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829d"></script>
+  <script src="script.js?v=20260829e"></script>
 </body>
 </html>
