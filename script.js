@@ -1076,7 +1076,8 @@ function openListModal(title, items) {
     container.innerHTML = '<p class="text-center">ไม่มีข้อมูลรายการ</p>';
   } else {
     items.forEach(item => {
-      const status = getStatusTheme(item.percent);
+      // สถานะอิงตามปริมาณน้ำดิบคงเหลือ (วัน) เกณฑ์เดียวกับตารางและแผนที่
+      const status = item.forecastValid ? getStatusThemeByDays(item.daysRemaining) : getFlaggedTheme();
       const div = document.createElement('div');
       div.className = 'modal-list-item';
       div.innerHTML = `
@@ -1085,7 +1086,7 @@ function openListModal(title, items) {
           <br><small style="color:#64748b;">${item.branch}</small>
         </div>
         <div>
-          <span class="badge ${status.badgeClass}">${item.percent}%</span>
+          <span class="badge ${status.badgeClass}">${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</span>
         </div>
       `;
       div.addEventListener('click', () => {
@@ -1101,14 +1102,16 @@ function openListModal(title, items) {
 
 function openDetailModal(item) {
   selectedWaterItem = item;
-  const status = getStatusTheme(item.percent);
+  // สถานะอิงตามปริมาณน้ำดิบคงเหลือ (วัน) เกณฑ์เดียวกับตารางและแผนที่
+  const status = item.forecastValid ? getStatusThemeByDays(item.daysRemaining) : getFlaggedTheme();
   const container = document.getElementById('detail-modal-body');
 
   container.innerHTML = `
     <table class="detail-table">
       <tr><td>ชื่อแหล่งน้ำ:</td><td><strong>${item.name}</strong></td></tr>
       <tr><td>สาขาที่ให้บริการ:</td><td>${item.branch}</td></tr>
-      <tr><td>สถานะความจุ:</td><td><span class="badge ${status.badgeClass}">${status.label} (${item.percent}%)</span></td></tr>
+      <tr><td>สถานะ (ปริมาณน้ำดิบคงเหลือ):</td><td><span class="badge ${status.badgeClass}">${status.label}</span></td></tr>
+      <tr><td>% ความจุ:</td><td>${item.percent}%</td></tr>
       <tr><td>ปริมาณน้ำสูงสุด,ระดับน้ำสูงสุด (Max):</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำต่ำสุด,ระดับน้ำต่ำสุด (Min):</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำปัจจุบัน,ระดับน้ำปัจจุบัน (Current):</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
