@@ -437,7 +437,7 @@ function renderMapMarkers() {
     });
 
     marker.bindTooltip(item.name + (item.forecastValid ? '' : ' ⚠️'), {
-      permanent: true,
+      permanent: false,
       direction: 'top',
       className: item.forecastValid ? 'map-label' : 'map-label map-label-flagged',
       offset: [0, -8]
