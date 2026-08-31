@@ -443,33 +443,47 @@ function renderMapMarkers() {
       offset: [0, -8]
     });
 
-    const forecastWarning = item.forecastValid
-      ? ''
-      : `<tr><td colspan="2" style="color:#b45309; background:rgba(245,158,11,0.12); border-radius:4px;">⚠️ วันที่คาดการณ์นี้ดูผิดปกติ (ค่าดิบ: ${item.forecastRaw}) ควรตรวจสอบกับข้อมูลต้นทาง</td></tr>`;
-
-    const popupContent = `
-      <div style="font-family: 'Sarabun', sans-serif; min-width:240px;">
-        <h4 style="margin-bottom:8px; color:#0f172a; border-bottom:2px solid #0284c7; padding-bottom:4px;">${item.name}</h4>
-        <table class="popup-table">
-          <tr><td>สาขาที่ให้บริการ</td><td>${item.branch}</td></tr>
-          <tr><td>ความจุสูงสุด,ระดับสูงสุด</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
-          <tr><td>ความจุต่ำสุด,ระดับต่ำสุด</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
-          <tr><td>ความจุน้ำปัจจุบัน,ระดับน้ำปัจจุบัน</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
-          <tr><td>เปอร์เซ็นต์แหล่งน้ำ</td><td><strong>${item.percent}%</strong></td></tr>
-          <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
-          <tr><td>คาดว่าใช้ได้ถึง</td><td><strong>${item.forecast}</strong></td></tr>
-          <tr><td>กำลังการผลิต</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
-          <tr><td>ความต้องการใช้น้ำ</td><td>${item.demand.toLocaleString()} คน</td></tr>
-          ${forecastWarning}
-        </table>
-      </div>
-    `;
-
-    marker.bindPopup(popupContent);
+    marker.on('click', () => openMapSheet(item));
     markersGroup.addLayer(marker);
 
     item._marker = marker;
   });
+}
+
+// แผงข้อมูลแบบเลื่อนขึ้นจากด้านล่าง (คล้าย Google Maps) แสดงเมื่อแตะ/คลิกหมุดบนแผนที่
+// ใช้แทน Leaflet popup เดิม เพราะ popup จะถูกตัดขอบเมื่อกล่องแผนที่มีขนาดเล็ก (เช่นบนมือถือ)
+function openMapSheet(item) {
+  const status = item.forecastValid ? getStatusThemeByDays(item.daysRemaining) : getFlaggedTheme();
+  const body = document.getElementById('map-sheet-body');
+
+  const forecastWarning = item.forecastValid
+    ? ''
+    : `<div class="map-sheet-warning">⚠️ วันที่คาดการณ์นี้ดูผิดปกติ (ค่าดิบ: ${item.forecastRaw}) ควรตรวจสอบกับข้อมูลต้นทาง</div>`;
+
+  body.innerHTML = `
+    <h4>${item.name}</h4>
+    <p class="map-sheet-branch">${item.branch}</p>
+    <table class="detail-table">
+      <tr><td>สถานะ:</td><td><span class="badge ${status.badgeClass}">${status.label}</span></td></tr>
+      <tr><td>% ความจุ:</td><td>${item.percent}%</td></tr>
+      <tr><td>ปริมาณน้ำสูงสุด,ระดับสูงสุด:</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
+      <tr><td>ปริมาณน้ำต่ำสุด,ระดับต่ำสุด:</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
+      <tr><td>ปริมาณน้ำปัจจุบัน,ระดับน้ำปัจจุบัน:</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
+      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong></td></tr>
+      <tr><td>คาดว่าใช้ได้ถึง:</td><td>${item.forecast}</td></tr>
+      <tr><td>กำลังการผลิต:</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
+      <tr><td>ความต้องการใช้น้ำ:</td><td>${item.demand.toLocaleString()} คน</td></tr>
+    </table>
+    ${forecastWarning}
+  `;
+
+  document.getElementById('map-sheet').classList.add('open');
+  document.getElementById('map-sheet-backdrop').classList.add('open');
+}
+
+function closeMapSheet() {
+  document.getElementById('map-sheet').classList.remove('open');
+  document.getElementById('map-sheet-backdrop').classList.remove('open');
 }
 
 function focusOnMap(item) {
@@ -487,7 +501,7 @@ function focusOnMap(item) {
   document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
   map.setView([item.lat, item.lng], 13);
   setTimeout(() => {
-    item._marker.openPopup();
+    openMapSheet(item);
   }, 400);
 }
 
@@ -946,9 +960,13 @@ function setupEventListeners() {
   document.getElementById('print-dashboard-btn').addEventListener('click', printDashboard);
   document.getElementById('print-map-a3-btn').addEventListener('click', printMapA3);
 
+  document.getElementById('map-sheet-close').addEventListener('click', closeMapSheet);
+  document.getElementById('map-sheet-backdrop').addEventListener('click', closeMapSheet);
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeAllModals();
+      closeMapSheet();
       if (document.getElementById('map-section').classList.contains('map-fullscreen')) {
         toggleMapFullscreen();
       }

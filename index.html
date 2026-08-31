@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260829u">
+  <link rel="stylesheet" href="style.css?v=20260829v">
 
   <!-- กำหนดขนาดกระดาษสำหรับพิมพ์ ปรับค่าด้วย JS ก่อนเรียก window.print() -->
   <style id="dynamic-print-page-style">@page { size: A4 landscape; margin: 10mm; }</style>
@@ -435,12 +435,13 @@
     </div>
   </div>
 
-</body>
-</html>S -->
-      </div>
-      <div class="modal-footer">
-        <button class="btn-primary" id="btn-show-map"><i class="fa-solid fa-location-dot"></i> แสดงบนแผนที่</button>
-      </div>
+  <!-- Map Marker Bottom Sheet (คล้าย Google Maps) -->
+  <div class="map-sheet-backdrop" id="map-sheet-backdrop"></div>
+  <div class="map-sheet" id="map-sheet">
+    <div class="map-sheet-handle"></div>
+    <button class="map-sheet-close" id="map-sheet-close" title="ปิด">&times;</button>
+    <div class="map-sheet-body" id="map-sheet-body">
+      <!-- Content injected by JS -->
     </div>
   </div>
 
@@ -448,6 +449,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260829u"></script>
+  <script src="script.js?v=20260829v"></script>
 </body>
 </html>

@@ -970,6 +970,92 @@ body {
   width: 50%;
 }
 
+/* Map Marker Bottom Sheet (คล้าย Google Maps) */
+.map-sheet-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 1400;
+}
+
+.map-sheet-backdrop.open {
+  display: block;
+}
+
+.map-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px -5px rgba(0, 0, 0, 0.2);
+  z-index: 1500;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(105%);
+  transition: transform 0.25s ease;
+}
+
+.map-sheet.open {
+  transform: translateY(0);
+}
+
+.map-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--glass-border);
+  border-radius: 2px;
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+
+.map-sheet-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+}
+
+.map-sheet-body {
+  padding: 8px 24px 28px;
+  overflow-y: auto;
+}
+
+.map-sheet-body h4 {
+  font-size: 17px;
+  color: var(--primary-navy);
+  margin-bottom: 4px;
+  padding-right: 24px;
+}
+
+.map-sheet-body .map-sheet-branch {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.map-sheet-body .map-sheet-warning {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.map-sheet-actions {
+  margin-top: 14px;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .sidebar { width: 80px; }
@@ -1042,7 +1128,9 @@ body {
   .card-subtext,
   .modal,
   .loading-overlay,
-  .fetch-spinner {
+  .fetch-spinner,
+  .map-sheet,
+  .map-sheet-backdrop {
     display: none !important;
   }
 
