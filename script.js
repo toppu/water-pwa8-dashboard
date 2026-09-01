@@ -893,7 +893,9 @@ function setupEventListeners() {
   });
 
   document.getElementById('card-watch-branches').addEventListener('click', () => {
-    openListModal('รายการแหล่งน้ำในสาขาเฝ้าระวัง (ปริมาณน้ำดิบคงเหลือ 121-210 วัน)', getWatchTierItems());
+    const items = getWatchTierItems();
+    const branchCount = new Set(items.map(d => d.branch)).size;
+    openListModal(`รายการแหล่งน้ำในสาขาเฝ้าระวัง (${branchCount} สาขา / ${items.length} แหล่งน้ำ, ปริมาณน้ำดิบคงเหลือ 121-210 วัน)`, items);
   });
 
   document.getElementById('card-critical').addEventListener('click', () => {
