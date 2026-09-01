@@ -377,7 +377,7 @@ function animateCount(elementId, targetValue) {
 
 function updateCards() {
   const total = waterData.length;
-  const critical = waterData.filter(d => d.percent < 30).length;
+  const critical = getCriticalDaysItems().length;
   const flagged = waterData.filter(d => !d.forecastValid).length;
   const watchBranches = new Set(getWatchTierItems().map(d => d.branch)).size;
 
@@ -390,6 +390,11 @@ function updateCards() {
 // แหล่งน้ำที่อยู่ในเกณฑ์เฝ้าระวังตามปริมาณน้ำดิบคงเหลือ (121-210 วัน) นับเฉพาะข้อมูลคาดการณ์ที่ไม่ผิดปกติ
 function getWatchTierItems() {
   return waterData.filter(d => d.forecastValid && d.daysRemaining >= 121 && d.daysRemaining <= 210);
+}
+
+// แหล่งน้ำที่วิกฤตตามปริมาณน้ำดิบคงเหลือ (น้อยกว่า 120 วัน) นับเฉพาะข้อมูลคาดการณ์ที่ไม่ผิดปกติ
+function getCriticalDaysItems() {
+  return waterData.filter(d => d.forecastValid && d.daysRemaining < 120);
 }
 
 // ==========================================
@@ -874,8 +879,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('card-critical').addEventListener('click', () => {
-    const criticalList = waterData.filter(d => d.percent < 30);
-    openListModal('รายการแหล่งน้ำวิกฤต (< 30%)', criticalList);
+    openListModal('รายการแหล่งน้ำวิกฤตจากจำนวนวันที่น้ำดิบคงเหลือ (< 120 วัน)', getCriticalDaysItems());
   });
 
   document.getElementById('card-flagged').addEventListener('click', () => {
