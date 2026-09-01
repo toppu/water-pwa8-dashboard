@@ -443,15 +443,23 @@ function renderMapMarkers() {
       offset: [0, -8]
     });
 
-    marker.on('click', () => openMapSheet(item));
+    marker.on('click', () => showMarkerDetails(item));
     markersGroup.addLayer(marker);
 
     item._marker = marker;
   });
 }
 
-// แผงข้อมูลแบบเลื่อนขึ้นจากด้านล่าง (คล้าย Google Maps) แสดงเมื่อแตะ/คลิกหมุดบนแผนที่
-// ใช้แทน Leaflet popup เดิม เพราะ popup จะถูกตัดขอบเมื่อกล่องแผนที่มีขนาดเล็ก (เช่นบนมือถือ)
+// จอกว้าง (เว็บ/เดสก์ท็อป) ใช้ modal แบบเดิม, จอแคบ (มือถือ) ใช้แผงเลื่อนขึ้นแบบ Google Maps
+// เพราะ Leaflet popup เดิมจะถูกตัดขอบเมื่อกล่องแผนที่มีขนาดเล็กบนมือถือ
+function showMarkerDetails(item) {
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    openMapSheet(item);
+  } else {
+    openDetailModal(item);
+  }
+}
+
 function openMapSheet(item) {
   const status = item.forecastValid ? getStatusThemeByDays(item.daysRemaining) : getFlaggedTheme();
   const body = document.getElementById('map-sheet-body');
@@ -501,7 +509,7 @@ function focusOnMap(item) {
   document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
   map.setView([item.lat, item.lng], 13);
   setTimeout(() => {
-    openMapSheet(item);
+    showMarkerDetails(item);
   }, 400);
 }
 
