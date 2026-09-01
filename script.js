@@ -450,6 +450,32 @@ function renderMapMarkers() {
   });
 }
 
+// เนื้อหา popup แบบย่อ ใช้ตอน "แสดงบนแผนที่" เพื่อชี้ตำแหน่งจุดนั้นบนแผนที่โดยตรง
+// (ไม่ใช้ modal/แผงเลื่อนขึ้น เพราะจะบังแผนที่ที่เพิ่ง pan ไปหา)
+function buildMapPopupContent(item) {
+  const forecastWarning = item.forecastValid
+    ? ''
+    : `<tr><td colspan="2" style="color:#b45309; background:rgba(245,158,11,0.12); border-radius:4px;">⚠️ วันที่คาดการณ์นี้ดูผิดปกติ (ค่าดิบ: ${item.forecastRaw}) ควรตรวจสอบกับข้อมูลต้นทาง</td></tr>`;
+
+  return `
+    <div style="font-family: 'Sarabun', sans-serif; min-width:240px;">
+      <h4 style="margin-bottom:8px; color:#0f172a; border-bottom:2px solid #0284c7; padding-bottom:4px;">${item.name}</h4>
+      <table class="popup-table">
+        <tr><td>สาขาที่ให้บริการ</td><td>${item.branch}</td></tr>
+        <tr><td>ความจุสูงสุด,ระดับสูงสุด</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
+        <tr><td>ความจุต่ำสุด,ระดับต่ำสุด</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
+        <tr><td>ความจุน้ำปัจจุบัน,ระดับน้ำปัจจุบัน</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
+        <tr><td>เปอร์เซ็นต์แหล่งน้ำ</td><td><strong>${item.percent}%</strong></td></tr>
+        <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
+        <tr><td>คาดว่าใช้ได้ถึง</td><td><strong>${item.forecast}</strong></td></tr>
+        <tr><td>กำลังการผลิต</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
+        <tr><td>ความต้องการใช้น้ำ</td><td>${item.demand.toLocaleString()} คน</td></tr>
+        ${forecastWarning}
+      </table>
+    </div>
+  `;
+}
+
 // จอกว้าง (เว็บ/เดสก์ท็อป) ใช้ modal แบบเดิม, จอแคบ (มือถือ) ใช้แผงเลื่อนขึ้นแบบ Google Maps
 // เพราะ Leaflet popup เดิมจะถูกตัดขอบเมื่อกล่องแผนที่มีขนาดเล็กบนมือถือ
 function showMarkerDetails(item) {
@@ -509,7 +535,10 @@ function focusOnMap(item) {
   document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
   map.setView([item.lat, item.lng], 13);
   setTimeout(() => {
-    showMarkerDetails(item);
+    L.popup({ maxWidth: 280 })
+      .setLatLng([item.lat, item.lng])
+      .setContent(buildMapPopupContent(item))
+      .openOn(map);
   }, 400);
 }
 
