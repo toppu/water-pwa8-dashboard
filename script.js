@@ -93,9 +93,6 @@ let tableFilterState = {
   columnFilters: buildDefaultColumnFilters()
 };
 
-// ค่าคาดการณ์ที่ห่างจากวันนี้เกินกว่านี้ถือว่าข้อมูลต้นทางน่าจะผิดปกติ (10 ปี)
-const FORECAST_MAX_REASONABLE_DAYS = 3650;
-
 // คำอธิบายเกณฑ์สีของแต่ละโหมด สำหรับแสดงเป็น Legend ใต้แผนที่
 const MAP_LEGEND_ITEMS = {
   raw: [
@@ -161,6 +158,26 @@ function getPercentTier(percent) {
   if (percent >= 51) return 'normal';
   if (percent >= 30) return 'warning';
   return 'critical';
+}
+
+// แปลงจำนวนวันน้ำดิบคงเหลือเป็นข้อความอ่านง่าย เช่น 400 วัน -> "1 ปี 35 วัน"
+// ค่าติดลบ (เกินกำหนดคาดการณ์ไปแล้ว) แสดงเป็น "เกินกำหนด X วัน/ปี"
+function formatDaysRemaining(days) {
+  if (days === null || days === undefined || isNaN(days)) return 'ไม่ระบุ';
+
+  const isOverdue = days < 0;
+  const absDays = Math.abs(days);
+  const years = Math.floor(absDays / 365);
+  const remainingDays = absDays % 365;
+
+  let text;
+  if (years > 0) {
+    text = remainingDays > 0 ? `${years} ปี ${remainingDays} วัน` : `${years} ปี`;
+  } else {
+    text = `${absDays.toLocaleString()} วัน`;
+  }
+
+  return isOverdue ? `เกินกำหนด ${text}` : text;
 }
 
 // Helper คำนวณสีธีมตามจำนวนวันน้ำดิบคงเหลือ (4 ระดับ)
@@ -260,8 +277,9 @@ async function fetchData() {
           correctedDate.setUTCFullYear(correctedDate.getUTCFullYear() - 543);
         }
         daysRemaining = Math.ceil((correctedDate - new Date()) / (1000 * 60 * 60 * 24));
-        // วันที่คาดการณ์ที่ยังติดลบ (ผ่านไปแล้ว) หรือไกลเกินจริง ถือว่าข้อมูลต้นทางน่าจะผิดปกติ
-        forecastValid = daysRemaining >= 0 && daysRemaining <= FORECAST_MAX_REASONABLE_DAYS;
+        // แปลงวันที่คาดการณ์สำเร็จแล้ว ถือว่าข้อมูลใช้ได้ (ไม่กรองตามช่วงจำนวนวันอีกต่อไป
+        // เกณฑ์สีปกติ 4 ระดับใน getStatusThemeByDays ครอบคลุมทั้งค่าติดลบและค่ามาก ๆ อยู่แล้ว)
+        forecastValid = true;
       }
 
       return {
@@ -471,7 +489,7 @@ function buildMapPopupContent(item) {
         <tr><td>ความจุต่ำสุด,ระดับต่ำสุด</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
         <tr><td>ความจุน้ำปัจจุบัน,ระดับน้ำปัจจุบัน</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
         <tr><td>เปอร์เซ็นต์แหล่งน้ำ</td><td><strong>${item.percent}%</strong></td></tr>
-        <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
+        <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ</td><td><strong>${item.forecastValid ? formatDaysRemaining(item.daysRemaining) : 'ไม่ระบุ'}</strong></td></tr>
         <tr><td>คาดว่าใช้ได้ถึง</td><td><strong>${item.forecast}</strong></td></tr>
         <tr><td>กำลังการผลิต</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
         <tr><td>ความต้องการใช้น้ำ</td><td>${item.demand.toLocaleString()} คน</td></tr>
@@ -508,7 +526,7 @@ function openMapSheet(item) {
       <tr><td>ปริมาณน้ำสูงสุด,ระดับสูงสุด:</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำต่ำสุด,ระดับต่ำสุด:</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำปัจจุบัน,ระดับน้ำปัจจุบัน:</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
-      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ'}</strong></td></tr>
+      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? formatDaysRemaining(item.daysRemaining) : 'ไม่ระบุ'}</strong></td></tr>
       <tr><td>คาดว่าใช้ได้ถึง:</td><td>${item.forecast}</td></tr>
       <tr><td>กำลังการผลิต:</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
       <tr><td>ความต้องการใช้น้ำ:</td><td>${item.demand.toLocaleString()} คน</td></tr>
@@ -1176,7 +1194,7 @@ function openDetailModal(item) {
       <tr><td>ปริมาณน้ำสูงสุด,ระดับน้ำสูงสุด (Max):</td><td>${item.max.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำต่ำสุด,ระดับน้ำต่ำสุด (Min):</td><td>${item.min.toLocaleString()} ลบ.ม.,ม.</td></tr>
       <tr><td>ปริมาณน้ำปัจจุบัน,ระดับน้ำปัจจุบัน (Current):</td><td>${item.current.toLocaleString()} ลบ.ม.,ม.</td></tr>
-      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? item.daysRemaining.toLocaleString() + ' วัน' : 'ไม่ระบุ (ข้อมูลผิดปกติ)'}</strong></td></tr>
+      <tr><td>ปริมาณน้ำดิบคงเหลือโดยประมาณ:</td><td><strong>${item.forecastValid ? formatDaysRemaining(item.daysRemaining) : 'ไม่ระบุ'}</strong></td></tr>
       <tr><td>คาดการณ์สูบน้ำดิบได้ถึง (Forecast):</td><td><strong>${item.forecast}</strong></td></tr>
       <tr><td>กำลังการผลิต:</td><td>${item.production.toLocaleString()} ลบ.ม./ชม.</td></tr>
       <tr><td>ความต้องการใช้น้ำ:</td><td>${item.demand.toLocaleString()} คน</td></tr>
