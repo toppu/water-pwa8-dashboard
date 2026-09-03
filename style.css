@@ -1161,14 +1161,17 @@ body {
 
   .charts-grid-4 {
     grid-template-columns: repeat(2, 1fr);
-    page-break-before: always;
   }
 
   .chart-container {
     height: 220px;
   }
 
-  #map-section {
+  #table-section {
+    page-break-before: always;
+  }
+
+  #chart-section {
     page-break-before: always;
   }
 
