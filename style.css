@@ -1147,12 +1147,26 @@ body {
   .content-section,
   .card,
   .chart-card,
-  .table-card,
   .map-card,
   .about-card {
     box-shadow: none !important;
     border: 1px solid #cbd5e1 !important;
     break-inside: avoid;
+  }
+
+  .table-card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .section-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .table-responsive {
+    break-before: avoid;
+    page-break-before: avoid;
   }
 
   .cards-grid {
@@ -1193,6 +1207,137 @@ body {
   .table-pagination {
     justify-content: center;
   }
+}
+
+/* โหมดส่งออก PDF (ใช้กับปุ่มดาวน์โหลด PDF) — จำลองกฎเดียวกับ @media print
+   แต่เป็นคลาสจริงบน body เพราะ html2canvas ไม่อ่านสไตล์ @media print */
+.pdf-export-mode .sidebar,
+.pdf-export-mode .search-container,
+.pdf-export-mode .print-toolbar,
+.pdf-export-mode #map-color-toggle,
+.pdf-export-mode #map-fullscreen-btn,
+.pdf-export-mode .map-size-control,
+.pdf-export-mode .th-filter-btn,
+.pdf-export-mode .th-filter-panel,
+.pdf-export-mode .table-pagination .pagination-nav,
+.pdf-export-mode .pagination-size,
+.pdf-export-mode .card-subtext,
+.pdf-export-mode .modal,
+.pdf-export-mode .loading-overlay,
+.pdf-export-mode .fetch-spinner,
+.pdf-export-mode .map-sheet,
+.pdf-export-mode .map-sheet-backdrop {
+  display: none !important;
+}
+
+.pdf-export-mode .app-container {
+  display: block;
+}
+
+.pdf-export-mode .main-content {
+  margin-left: 0;
+  padding: 0;
+  gap: 14px;
+  background: #fff;
+}
+
+.pdf-export-mode .content-section,
+.pdf-export-mode .card,
+.pdf-export-mode .chart-card,
+.pdf-export-mode .map-card,
+.pdf-export-mode .about-card {
+  box-shadow: none !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.pdf-export-mode .table-card {
+  box-shadow: none !important;
+  border: 1px solid #cbd5e1 !important;
+  overflow: visible;
+}
+
+.pdf-export-mode .table-responsive {
+  overflow-x: visible;
+}
+
+.pdf-export-mode .cards-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.pdf-export-mode .charts-grid-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pdf-export-mode .chart-card {
+  min-width: 0;
+}
+
+.pdf-export-mode .chart-container {
+  height: 220px;
+  min-width: 0;
+}
+
+.pdf-export-mode .chart-container canvas {
+  max-width: 100% !important;
+}
+
+.pdf-export-mode .map-card {
+  height: 480px !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.pdf-export-mode .data-table {
+  font-size: 8.5px;
+}
+
+.pdf-export-mode .data-table th,
+.pdf-export-mode .data-table td {
+  padding: 4px 5px;
+}
+
+/* html2pdf บีบความกว้างของเนื้อหาที่จับภาพให้เท่ากับความกว้างกระดาษ PDF จริง (~1063px
+   สำหรับ A4 แนวนอน) เสมอ ตารางจึงต้องแคบกว่าที่แสดงบนหน้าจอมาก และ html2canvas คำนวณ
+   ความกว้างตัวอักษรไทยที่มีสระ/วรรณยุกต์ลอยผิดพลาดเมื่อตัดคำขึ้นบรรทัดใหม่ ทำให้ข้อความ
+   ซ้อนทับ/เพี้ยน จึงตัดข้อความยาวด้วย ellipsis แทนการตัดคำ เฉพาะคอลัมน์ชื่อแหล่งน้ำ/สาขา */
+.pdf-export-mode .data-table td:nth-child(2) {
+  max-width: 175px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdf-export-mode .data-table td:nth-child(3) {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* บังคับหัวตารางไม่ให้ตัดขึ้นบรรทัดใหม่ เพราะ html2canvas วัดความกว้างตัวอักษรไทย
+   ที่ตัดคำได้ไม่ตรงกับที่เบราว์เซอร์คำนวณจริง ทำให้ข้อความหัวตารางซ้อนทับกัน */
+.pdf-export-mode .data-table th {
+  white-space: nowrap;
+  font-size: 7.5px;
+}
+
+.pdf-export-mode .data-table .th-filter {
+  display: block;
+}
+
+/* กันข้อความซ้อนทับในการ์ด "เกี่ยวกับระบบ" เพราะ html2canvas วัดการตัดคำข้อความ
+   ที่ผสมไทย/อังกฤษได้ไม่ตรงกับความสูงจริงที่เบราว์เซอร์คำนวณ */
+.pdf-export-mode .about-card p {
+  line-height: 2.4;
+  font-size: 13px;
+}
+
+.pdf-export-mode .about-meta {
+  margin-top: 30px;
+}
+
+.pdf-export-mode .table-pagination {
+  justify-content: center;
 }
 
 /* โหมดพิมพ์เฉพาะแผนที่ ขนาด A3 (สลับด้วย JS ก่อนเรียก window.print()) */

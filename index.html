@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=20260903a">
+  <link rel="stylesheet" href="style.css?v=20260903c">
 
   <!-- กำหนดขนาดกระดาษสำหรับพิมพ์ ปรับค่าด้วย JS ก่อนเรียก window.print() -->
   <style id="dynamic-print-page-style">@page { size: A4 landscape; margin: 10mm; }</style>
@@ -78,6 +78,9 @@
             </button>
             <button class="btn-sort" id="print-map-a3-btn" title="พิมพ์เฉพาะแผนที่ ขนาด A3 แนวนอน">
               <i class="fa-solid fa-map"></i> พิมพ์แผนที่ (A3)
+            </button>
+            <button class="btn-sort" id="download-pdf-btn" title="ดาวน์โหลดแดชบอร์ดเป็นไฟล์ PDF (เค้าโครงเดียวกันทุกเบราว์เซอร์)">
+              <i class="fa-solid fa-file-pdf"></i> ดาวน์โหลด PDF
             </button>
           </div>
         </div>
@@ -448,7 +451,8 @@
   <!-- Leaflet & Chart.js Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Custom Script -->
-  <script src="script.js?v=20260903a"></script>
+  <script src="script.js?v=20260903c"></script>
 </body>
 </html>

@@ -1020,6 +1020,7 @@ function setupEventListeners() {
 
   document.getElementById('print-dashboard-btn').addEventListener('click', printDashboard);
   document.getElementById('print-map-a3-btn').addEventListener('click', printMapA3);
+  document.getElementById('download-pdf-btn').addEventListener('click', downloadDashboardPdf);
 
   document.getElementById('map-sheet-close').addEventListener('click', closeMapSheet);
   document.getElementById('map-sheet-backdrop').addEventListener('click', closeMapSheet);
@@ -1146,6 +1147,64 @@ function restoreAfterPrint() {
   setTimeout(() => {
     if (map) map.invalidateSize();
   }, 300);
+}
+
+// ดาวน์โหลดแดชบอร์ดเป็นไฟล์ PDF โดยตรง (แทนการพิมพ์ผ่านเบราว์เซอร์) เพื่อให้เค้าโครงหน้ากระดาษ
+// เหมือนกันทุกเบราว์เซอร์ เนื่องจากการพิมพ์ผ่าน @media print ของแต่ละเบราว์เซอร์แสดงผลไม่ตรงกัน
+function downloadDashboardPdf() {
+  const btn = document.getElementById('download-pdf-btn');
+  if (btn) btn.disabled = true;
+
+  const mapWasHidden = document.getElementById('map-section').classList.contains('map-hidden');
+  const prevPageSize = pageSize;
+  const prevCurrentPage = currentPage;
+
+  if (mapWasHidden) setMapSize('medium');
+  pageSize = 'all';
+  currentPage = 1;
+  renderTablePage();
+  document.body.classList.add('pdf-export-mode');
+
+  const cleanup = () => {
+    document.body.classList.remove('pdf-export-mode');
+    pageSize = prevPageSize;
+    currentPage = prevCurrentPage;
+    renderTablePage();
+    if (mapWasHidden) setMapSize('hidden');
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+    }, 300);
+    if (btn) btn.disabled = false;
+  };
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+    [pieChartInstance, droughtWatchChartInstance, reservoirChartInstance, riverChartInstance].forEach((chart) => {
+      if (chart) chart.resize();
+    });
+
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      const now = new Date();
+      const stamp = `${now.getFullYear() + 543}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const opt = {
+        margin: 8,
+        filename: `water-alert-8-dashboard-${stamp}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          before: ['#table-section', '#chart-section'],
+          avoid: ['.map-card', '.card', '.chart-card', '.about-card']
+        }
+      };
+
+      html2pdf().set(opt).from(document.querySelector('.main-content')).save()
+        .then(cleanup)
+        .catch(cleanup);
+    }, 500);
+  }, 350);
 }
 
 function openListModal(title, items) {
