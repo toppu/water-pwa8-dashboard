@@ -1141,7 +1141,7 @@ body {
   .main-content {
     margin-left: 0;
     padding: 0;
-    gap: 8px;
+    gap: 14px;
   }
 
   .content-section,
@@ -1155,94 +1155,25 @@ body {
     break-inside: avoid;
   }
 
-  .content-section {
-    gap: 8px;
-  }
-
-  .top-header {
-    padding: 10px 16px;
-  }
-
-  .header-title h1 {
-    font-size: 16px;
-  }
-
-  .header-title p {
-    font-size: 11px;
-  }
-
   .cards-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-
-  .card {
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .card-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
-  }
-
-  .card-info h3 {
-    font-size: 11px;
-  }
-
-  .card-value {
-    font-size: 20px;
-  }
-
-  .section-header h2 {
-    font-size: 14px;
   }
 
   .charts-grid-4 {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .chart-card {
-    padding: 10px;
-  }
-
-  .chart-card h3 {
-    font-size: 12px;
-    margin-bottom: 2px;
-  }
-
-  .chart-subtext {
-    font-size: 10px;
-    margin-top: -8px;
-    margin-bottom: 6px;
-  }
-
-  .chart-container {
-    height: 155px;
-  }
-
-  .map-legend {
-    padding: 6px 10px;
-    gap: 8px;
-  }
-
-  .legend-item {
-    font-size: 10px;
-  }
-
-  /* แบ่งหน้าพิมพ์เป็น 3 ส่วน: (1) หัวเรื่อง/การ์ดสรุป/แผนที่ (2) ตารางข้อมูล (3) กราฟสถิติ */
-  #table-section {
     page-break-before: always;
   }
 
-  #chart-section {
+  .chart-container {
+    height: 220px;
+  }
+
+  #map-section {
     page-break-before: always;
   }
 
   .map-card {
-    height: 330px !important;
+    height: 480px !important;
     min-height: 0 !important;
     max-height: none !important;
   }
