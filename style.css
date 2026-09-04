@@ -1281,8 +1281,10 @@ body {
   max-width: 100% !important;
 }
 
+/* จำกัดความสูงแผนที่ให้พอดีกับพื้นที่ที่เหลือในหน้าแรกร่วมกับหัวเรื่อง/การ์ดสรุป
+   เพื่อให้ "ระบบติดตามสถานะแหล่งน้ำ..." และ "แผนที่ตำแหน่งแหล่งน้ำ" อยู่หน้าเดียวกัน */
 .pdf-export-mode .map-card {
-  height: 480px !important;
+  height: 340px !important;
   min-height: 0 !important;
   max-height: none !important;
 }
